@@ -1,101 +1,144 @@
-# IMC Prosperity Trading Assistant
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/banner-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="assets/banner-light.svg">
+    <img alt="IMC Prosperity Trading Assistant — RAG-powered trading insights" src="assets/banner-dark.svg" width="100%">
+  </picture>
+</p>
 
-A comprehensive AI-powered trading assistant for IMC Prosperity trading competition, providing insights and answers about trading data, strategies, and IMC Prosperity documentation.
+[![CI](https://github.com/Builder106/IMC_Prosperity/actions/workflows/ci.yml/badge.svg)](https://github.com/Builder106/IMC_Prosperity/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](#license)
+[![Live demo](https://img.shields.io/badge/demo-live-success.svg)](https://tradetell.streamlit.app)
+[![Built with Streamlit](https://img.shields.io/badge/built%20with-Streamlit-FF4B4B.svg)](https://streamlit.io)
+
+An AI assistant for the **IMC Prosperity** trading competition: ask about products,
+position limits, and strategies — or request a ready-to-run trading algorithm —
+and get answers grounded in the competition wiki, community Discord, and historical
+market data via retrieval-augmented generation.
+
+**Live app:** [tradetell.streamlit.app](https://tradetell.streamlit.app)
 
 ## Overview
 
-This project creates an intelligent assistant that helps with understanding, analyzing, and developing trading strategies for the IMC Prosperity trading competition. It combines Notion wiki data, trading logs, and code examples into a powerful RAG (Retrieval Augmented Generation) system that can:
+This project combines Notion wiki content, trading logs, and code examples into a
+RAG (Retrieval-Augmented Generation) system that can:
 
 - Answer questions about IMC Prosperity rules, mechanics, and concepts
-- Analyze trading logs and provide insights
-- Assist with developing and improving trading algorithms
-- Visualize trading data and performance metrics
+- Analyze trading logs and surface insights
+- Help develop and improve trading algorithms (it generates complete `Trader` classes)
+- Retrieve relevant market data and code examples for grounding
 
 ## Features
 
-- **Streamlit Web Interface**: User-friendly interface for interacting with the assistant
-- **RAG System**: Combines retrieval-based and generative AI to provide accurate answers
-- **Knowledge Base**: Processes and indexes Notion wiki content, code examples, and trading data
-- **Trading Log Analysis**: Summarizes and extracts insights from trading logs
-- **Vector Database**: Efficient storage and retrieval of embedded documents
+- **Streamlit chat interface** — conversational UI with history, per-answer sources, and example prompts
+- **RAG system** — ensemble retrieval over three weighted vector stores (wiki, trading data, code)
+- **Groq-backed generation** — fast inference via the Groq API (`llama-3.3-70b-versatile` by default)
+- **Knowledge base** — Notion wiki (Markdown), Discord exports, and processed trading data
+- **Trading log analysis** — summarizes and extracts insights from competition logs
 
-## Project Structure
+## How it works
 
-- **`app.py`**: Main Streamlit application entry point
-- **`IMC_visualizer_prereqs.py`**: Prerequisites for visualization functionality
-- **`src/`**: Source code for various components
-  - **`algorithms/`**: Trading algorithms for different competition rounds
-  - **`rag/`**: RAG system implementation
-    - **`build_rag_system.py`**: Core RAG system construction
-    - **`process_raw_trading_data.py`**: Processing for trading data
-  - **`utils/`**: Utility functions
-    - **`notion_scraper/`**: Tools for scraping Notion wiki content
-    - **`summarize_trading_logs.py`**: Trading log analysis tools
-- **`data/`**: Data files
-  - **`prosperity_wiki/`**: Processed Notion wiki content
-  - **`trading_data/`**: Trading data from various rounds
-- **`vectordb/`**: Vector databases for efficient retrieval
-- **`backtests/`**: Trading backtest logs
+```mermaid
+sequenceDiagram
+    actor User
+    participant UI as Streamlit UI (app.py)
+    participant RAG as GroqRagChain
+    participant R as Ensemble Retriever
+    participant VS as Chroma vector stores
+    participant Groq as Groq API
+    User->>UI: Ask a question
+    UI->>RAG: invoke({ query })
+    RAG->>R: retrieve(query)
+    R->>VS: similarity search (wiki · trading · code)
+    VS-->>R: top-k documents
+    R-->>RAG: ranked, weighted context
+    RAG->>Groq: prompt + context (llama-3.3-70b)
+    Groq-->>RAG: generated answer
+    RAG-->>UI: answer + source documents
+    UI-->>User: rendered answer with sources
+```
 
-## Getting Started
+The vector stores are built in-memory at startup (cached for the session), so the
+first query after a cold start re-embeds the corpus and is slower than the rest.
+
+## Project structure
+
+- **`app.py`** — Streamlit application entry point (chat UI + RAG wiring)
+- **`src/`** — source code
+  - **`rag/`** — RAG system
+    - **`build_rag_system.py`** — document processing, vector stores, retriever, chain
+    - **`groq_llm.py`** — `GroqRagChain` (Groq-backed, swappable backend)
+    - **`model_config.py`** — env-driven model/embedding configuration
+    - **`process_raw_trading_data.py`** — trading-data processing
+  - **`algorithms/`** — round-by-round trading algorithms
+  - **`utils/`** — Notion scraper and trading-log tools
+- **`data/`** — `prosperity_wiki/` (Markdown), `trading_data/`, processed datasets
+- **`tests/`** — pytest suite (offline; network mocked)
+
+## Getting started
 
 ### Prerequisites
 
 - Python 3.9+
-- Required Python packages (install via `pip install -r requirements.txt`)
-- A Groq API key ([console.groq.com](https://console.groq.com/keys))
+- Required packages (`pip install -r requirements.txt`)
+- A Groq API key ([console.groq.com/keys](https://console.groq.com/keys))
 
 ### Installation
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/imc_prosperity.git
-   cd imc_prosperity
-   ```
+```bash
+git clone https://github.com/Builder106/IMC_Prosperity.git
+cd IMC_Prosperity
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+```
 
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+Create a `.env` in the project root with your Groq API key:
 
-3. Set up environment variables:
-   Create a `.env` file in the project root with your Groq API key:
-   ```
-   GROQ_API_KEY=your_groq_api_key_here
-   ```
+```
+GROQ_API_KEY=your_groq_api_key_here
+```
 
-   Optional overrides (defaults shown):
-   ```
-   LLM_MODEL=llama-3.3-70b-versatile
-   LLM_TEMPERATURE=0.2
-   GROQ_TIMEOUT_SECONDS=180
-   EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
-   ```
+Optional overrides (defaults shown):
 
-   When deploying on Streamlit Community Cloud, add the same keys under
-   **Manage app → Settings → Secrets** instead of a `.env` file.
+```
+LLM_MODEL=llama-3.3-70b-versatile
+LLM_TEMPERATURE=0.2
+GROQ_TIMEOUT_SECONDS=180
+EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
+```
 
-### Running the Application
+When deploying on Streamlit Community Cloud, add the same keys under
+**Manage app → Settings → Secrets** instead of a `.env` file.
 
-Start the Streamlit web interface:
+### Running
+
 ```bash
 streamlit run app.py
 ```
 
 ## Usage
 
-1. Enter questions about IMC Prosperity in the text input field
-2. View AI-generated answers with source information
-3. Analyze trading logs by uploading them through the interface
-4. Get insights and recommendations for improving trading strategies
+1. Ask a question about products, position limits, or strategies — or request a trading algorithm.
+2. Read the AI-generated answer; expand **sources** to see the retrieved context.
+3. Use the sidebar example prompts as starting points.
 
-## Working with Trading Logs
+### Working with trading logs
 
-To summarize trading logs:
 ```bash
 python src/utils/summarize_trading_logs.py
 ```
-Follow the prompts to input your log file path and receive a detailed summary.
+
+Follow the prompts to input a log file path and receive a detailed summary.
+
+## Development
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, test commands, and project
+guardrails. Run the suite with:
+
+```bash
+pytest
+```
 
 ## Acknowledgments
 
@@ -103,3 +146,7 @@ Follow the prompts to input your log file path and receive a detailed summary.
 - LangChain for the RAG framework
 - Groq for fast LLM inference
 - Streamlit for the web interface
+
+## License
+
+Released under the [MIT License](LICENSE).
