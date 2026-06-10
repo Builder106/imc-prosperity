@@ -13,14 +13,16 @@ __pycache__
 vectordb
 
 # Vendored third-party tooling (kept local, not committed)
-tools/
+# Anchored to repo root so it never matches nested source dirs.
+/tools/
 
 # Competition data dumps & archives (kept local, not committed)
+# Root-anchored: avoids case-insensitive collisions with src/algorithms/round_*/
 *.zip
-267453/
-ROUND1/
-ROUND_2/
-backtests/
+/267453/
+/ROUND1/
+/ROUND_2/
+/backtests/
 
 # Generated logs
 *.log
