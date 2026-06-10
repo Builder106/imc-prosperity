@@ -13,29 +13,29 @@ def _reload_module():
     return importlib.reload(model_config)
 
 
-def test_defaults_use_claude_and_local_embeddings(monkeypatch):
+def test_defaults_use_groq_and_local_embeddings(monkeypatch):
     monkeypatch.delenv("LLM_MODEL", raising=False)
     monkeypatch.delenv("EMBEDDING_MODEL", raising=False)
-    monkeypatch.delenv("CLAUDE_CLI_COMMAND", raising=False)
-    monkeypatch.delenv("CLAUDE_CLI_TIMEOUT_SECONDS", raising=False)
+    monkeypatch.delenv("GROQ_API_KEY", raising=False)
+    monkeypatch.delenv("GROQ_TIMEOUT_SECONDS", raising=False)
 
     module = _reload_module()
 
-    assert module.get_llm_model_name().startswith("claude")
+    assert module.get_llm_model_name() == "llama-3.3-70b-versatile"
     assert module.get_embedding_model_name() == "sentence-transformers/all-MiniLM-L6-v2"
-    assert module.get_claude_cli_command() == "claude"
-    assert module.get_claude_cli_timeout_seconds() == 180
+    assert module.get_groq_api_key() == ""
+    assert module.get_groq_timeout_seconds() == 180
 
 
 def test_env_overrides_model_selection(monkeypatch):
-    monkeypatch.setenv("LLM_MODEL", "claude-3-5-haiku-latest")
+    monkeypatch.setenv("LLM_MODEL", "llama-3.1-8b-instant")
     monkeypatch.setenv("EMBEDDING_MODEL", "sentence-transformers/all-mpnet-base-v2")
-    monkeypatch.setenv("CLAUDE_CLI_COMMAND", "/opt/homebrew/bin/claude")
-    monkeypatch.setenv("CLAUDE_CLI_TIMEOUT_SECONDS", "240")
+    monkeypatch.setenv("GROQ_API_KEY", "gsk_test_key")
+    monkeypatch.setenv("GROQ_TIMEOUT_SECONDS", "240")
 
     module = _reload_module()
 
-    assert module.get_llm_model_name() == "claude-3-5-haiku-latest"
+    assert module.get_llm_model_name() == "llama-3.1-8b-instant"
     assert module.get_embedding_model_name() == "sentence-transformers/all-mpnet-base-v2"
-    assert module.get_claude_cli_command() == "/opt/homebrew/bin/claude"
-    assert module.get_claude_cli_timeout_seconds() == 240
+    assert module.get_groq_api_key() == "gsk_test_key"
+    assert module.get_groq_timeout_seconds() == 240

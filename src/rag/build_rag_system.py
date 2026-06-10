@@ -10,11 +10,13 @@ from langchain.retrievers import EnsembleRetriever
 from langchain.schema import Document
 from dotenv import load_dotenv
 from .process_raw_trading_data import process_round_data, discover_rounds
-from .claude_cli import ClaudeCliRagChain
+from .groq_llm import GroqRagChain
 from .discord_data import load_discord_exports
 from .model_config import (
-    get_claude_cli_command,
-    get_claude_cli_timeout_seconds,
+    get_groq_api_key,
+    get_groq_timeout_seconds,
+    get_llm_model_name,
+    get_llm_temperature,
     get_embedding_model_name,
 )
 
@@ -647,11 +649,13 @@ def create_rag_chain(retriever):
     Start by providing a brief overview of the strategy, then generate the complete algorithm as a Python file:
     """
 
-    return ClaudeCliRagChain(
+    return GroqRagChain(
         retriever=retriever,
         prompt_template=rag_prompt_template,
-        cli_command=get_claude_cli_command(),
-        timeout_seconds=get_claude_cli_timeout_seconds(),
+        model=get_llm_model_name(),
+        api_key=get_groq_api_key(),
+        temperature=get_llm_temperature(),
+        timeout_seconds=get_groq_timeout_seconds(),
     )
 
 def main():

@@ -43,7 +43,7 @@ This project creates an intelligent assistant that helps with understanding, ana
 
 - Python 3.9+
 - Required Python packages (install via `pip install -r requirements.txt`)
-- Claude CLI installed and authenticated with your Claude account subscription
+- A Groq API key ([console.groq.com](https://console.groq.com/keys))
 
 ### Installation
 
@@ -58,20 +58,22 @@ This project creates an intelligent assistant that helps with understanding, ana
    pip install -r requirements.txt
    ```
 
-3. Authenticate Claude CLI:
-   ```bash
-   claude
+3. Set up environment variables:
+   Create a `.env` file in the project root with your Groq API key:
    ```
-   Complete the browser login flow and use your Pro subscription.
+   GROQ_API_KEY=your_groq_api_key_here
+   ```
 
-4. Set up optional environment variables:
-   Create a `.env` file in the project root:
+   Optional overrides (defaults shown):
    ```
-   LLM_MODEL=claude-3-7-sonnet-latest
-   CLAUDE_CLI_COMMAND=claude
-   CLAUDE_CLI_TIMEOUT_SECONDS=180
+   LLM_MODEL=llama-3.3-70b-versatile
+   LLM_TEMPERATURE=0.2
+   GROQ_TIMEOUT_SECONDS=180
    EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
    ```
+
+   When deploying on Streamlit Community Cloud, add the same keys under
+   **Manage app → Settings → Secrets** instead of a `.env` file.
 
 ### Running the Application
 
@@ -99,5 +101,5 @@ Follow the prompts to input your log file path and receive a detailed summary.
 
 - IMC Prosperity for the trading competition
 - LangChain for the RAG framework
-- Anthropic Claude for the language model
+- Groq for fast LLM inference
 - Streamlit for the web interface

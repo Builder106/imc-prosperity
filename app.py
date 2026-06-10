@@ -128,12 +128,22 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# On Streamlit Cloud, secrets aren't automatically in os.environ; bridge the
+# config keys across so the os.getenv-based model config picks them up. Locally
+# this no-ops (no secrets file) and .env is used instead.
+try:
+    for _key in ("GROQ_API_KEY", "LLM_MODEL", "LLM_TEMPERATURE", "GROQ_TIMEOUT_SECONDS", "EMBEDDING_MODEL"):
+        if _key in st.secrets:
+            os.environ.setdefault(_key, str(st.secrets[_key]))
+except Exception:
+    pass
+
 try:
     rag_chain = initialize_rag_system()
 except Exception as exc:  # surface setup problems instead of a raw traceback
     st.error(
-        "The assistant could not start. Check that the Claude CLI is authenticated "
-        "and the knowledge base is available."
+        "The assistant could not start. Check that GROQ_API_KEY is set (in "
+        "Streamlit secrets or your .env file) and the knowledge base is available."
     )
     st.exception(exc)
     st.stop()

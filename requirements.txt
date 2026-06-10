@@ -3,6 +3,7 @@ langchain
 langchain-community
 langchain-text-splitters
 chromadb
+groq
 python-dotenv
 pandas
 numpy 
