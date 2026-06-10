@@ -1,5 +1,26 @@
+# OS / editor
 .DS_Store
+
+# Secrets
 .env
+
+# Python
 __pycache__
-vectordb
+.pytest_cache/
+
+# Virtualenv / vector store
 .venv
+vectordb
+
+# Vendored third-party tooling (kept local, not committed)
+tools/
+
+# Competition data dumps & archives (kept local, not committed)
+*.zip
+267453/
+ROUND1/
+ROUND_2/
+backtests/
+
+# Generated logs
+*.log
