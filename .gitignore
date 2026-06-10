@@ -20,8 +20,7 @@ vectordb
 # Root-anchored: avoids case-insensitive collisions with src/algorithms/round_*/
 *.zip
 /267453/
-/ROUND1/
-/ROUND_2/
+/data/competition_rounds/
 /backtests/
 
 # Generated logs
