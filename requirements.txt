@@ -3,7 +3,16 @@ langchain==0.2.17
 langchain-core==0.2.43
 langchain-community==0.2.19
 langchain-text-splitters==0.2.4
-chromadb
+chromadb==1.5.8
+# Align Chroma's telemetry stack: Cloud otherwise resolved an ancient
+# opentelemetry (1.11.x) whose protobuf-generated code is incompatible with a
+# modern protobuf runtime, crashing `import chromadb`. Pin to the combo that
+# imports cleanly locally.
+protobuf==6.33.6
+opentelemetry-api==1.41.0
+opentelemetry-sdk==1.41.0
+opentelemetry-proto==1.41.0
+opentelemetry-exporter-otlp-proto-grpc==1.41.0
 pysqlite3-binary; sys_platform == "linux"
 groq
 python-dotenv
