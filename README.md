@@ -43,7 +43,7 @@ This project creates an intelligent assistant that helps with understanding, ana
 
 - Python 3.9+
 - Required Python packages (install via `pip install -r requirements.txt`)
-- Google API key for access to Google Generative AI models (stored in `.env` file)
+- Claude CLI installed and authenticated with your Claude account subscription
 
 ### Installation
 
@@ -58,10 +58,19 @@ This project creates an intelligent assistant that helps with understanding, ana
    pip install -r requirements.txt
    ```
 
-3. Set up environment variables:
-   Create a `.env` file in the project root with your Google API key:
+3. Authenticate Claude CLI:
+   ```bash
+   claude
    ```
-   GOOGLE_API_KEY=your_api_key_here
+   Complete the browser login flow and use your Pro subscription.
+
+4. Set up optional environment variables:
+   Create a `.env` file in the project root:
+   ```
+   LLM_MODEL=claude-3-7-sonnet-latest
+   CLAUDE_CLI_COMMAND=claude
+   CLAUDE_CLI_TIMEOUT_SECONDS=180
+   EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
    ```
 
 ### Running the Application
@@ -90,5 +99,5 @@ Follow the prompts to input your log file path and receive a detailed summary.
 
 - IMC Prosperity for the trading competition
 - LangChain for the RAG framework
-- Google Generative AI for the language models
+- Anthropic Claude for the language model
 - Streamlit for the web interface

@@ -1,8 +1,12 @@
 streamlit
 langchain
 langchain-community
-langchain-google-genai
+langchain-text-splitters
 chromadb
 python-dotenv
 pandas
 numpy 
+sentence-transformers
+beautifulsoup4
+playwright
+pytest

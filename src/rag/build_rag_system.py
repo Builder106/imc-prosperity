@@ -2,19 +2,21 @@ import os
 import json
 import re
 from pathlib import Path
-import pandas as pd
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain_community.vectorstores.utils import filter_complex_metadata
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.document_loaders import JSONLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.retrievers import EnsembleRetriever
 from langchain.schema import Document
-from langchain.chains import RetrievalQA
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.prompts import PromptTemplate
 from dotenv import load_dotenv
 from .process_raw_trading_data import process_round_data, discover_rounds
+from .claude_cli import ClaudeCliRagChain
+from .discord_data import load_discord_exports
+from .model_config import (
+    get_claude_cli_command,
+    get_claude_cli_timeout_seconds,
+    get_embedding_model_name,
+)
 
 # Load environment variables
 load_dotenv()
@@ -26,6 +28,7 @@ PROJECT_ROOT = SCRIPT_DIR.parent.parent    # Goes up two levels to the project r
 
 NOTION_WIKI_DIR = PROJECT_ROOT / "data" / "prosperity_wiki"
 TRADING_DATA_DIR = PROJECT_ROOT / "data" / "trading_data"
+DISCORD_DATA_DIR = PROJECT_ROOT / "data" / "discord" / "raw"
 VECTOR_DB_DIR = PROJECT_ROOT / "vectordb"
 
 def process_notion_wiki_data(wiki_dir=NOTION_WIKI_DIR):
@@ -72,11 +75,108 @@ def process_notion_wiki_data(wiki_dir=NOTION_WIKI_DIR):
                     
         return list(languages) if languages else []
     
+    def extract_title_from_markdown(text, file_path):
+        for line in text.splitlines():
+            stripped = line.strip()
+            if stripped.startswith("#"):
+                return stripped.lstrip("#").strip()
+        return file_path.stem.replace("_", " ").replace("-", " ").strip()
+    
+    def load_markdown_file(md_file, category):
+        try:
+            content = md_file.read_text(encoding='utf-8')
+        except Exception as e:
+            print(f"Error reading markdown file {md_file}: {e}")
+            return None
+        return Document(
+            page_content=content,
+            metadata={
+                "source": str(md_file),
+                "category": category,
+                "type": "notion_wiki",
+                "title": extract_title_from_markdown(content, md_file),
+                "contains_code": "```" in content,
+                "code_languages": list({lang for lang in re.findall(r'```(\w*)', content) if lang})
+            }
+        )
+    
+    def load_json_file(json_file, category):
+        try:
+            with open(json_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+        except Exception as e:
+            print(f"Error reading JSON file {json_file}: {e}")
+            return None
+        
+        content = ""
+        
+        if isinstance(data, list):
+            for item in data:
+                if isinstance(item, dict):
+                    if "type" in item:
+                        if item["type"].startswith("h"):
+                            heading_level = item["type"][1:]
+                            content += f"{ '#' * int(heading_level)} {item['content']}\n\n"
+                        elif item["type"] == "p":
+                            content += f"{item['content']}\n\n"
+                        elif item["type"] == "list" and "items" in item:
+                            content += process_list_items(item["items"], item.get("style", "bulleted"))
+                        elif item["type"] == "code" and "file_path" in item:
+                            code_content = load_code_file(item["file_path"])
+                            if code_content:
+                                language = item.get("language", "")
+                                content += f"```{language}\n{code_content}\n```\n\n"
+                            else:
+                                preview = item.get("preview", "Code content unavailable")
+                                content += f"```\n{preview}\n```\n\n"
+                        elif item["type"] == "code":
+                            code = item.get("code", "")
+                            language = item.get("language", "")
+                            content += f"```{language}\n{code}\n```\n\n"
+                    elif "content" in item:
+                        content += f"{item['content']}\n\n"
+        else:
+            if "title" in data:
+                content += f"# {data['title']}\n\n"
+            if "content_blocks" in data:
+                for block in data["content_blocks"]:
+                    if "text" in block:
+                        content += f"{block['text']}\n\n"
+                    elif "code" in block:
+                        language = block.get("language", "")
+                        content += f"```{language}\n{block['code']}\n```\n\n"
+                    elif "file_path" in block:
+                        code_content = load_code_file(block["file_path"])
+                        if code_content:
+                            language = block.get("language", "")
+                            content += f"```{language}\n{code_content}\n```\n\n"
+                        else:
+                            preview = block.get("preview", "Code content unavailable")
+                            content += f"```\n{preview}\n```\n\n"
+        
+        return Document(
+            page_content=content,
+            metadata={
+                "source": str(json_file),
+                "category": category,
+                "type": "notion_wiki",
+                "title": extract_title(data),
+                "contains_code": "```" in content,
+                "code_languages": extract_code_languages(data)
+            }
+        )
+    
     wiki_path = Path(wiki_dir)
     documents = []
     
     # Categories to process
     categories = ["about_prosperity", "e-learning_center", "rounds"]
+    
+    for md_file in wiki_path.glob("*.md"):
+        doc = load_markdown_file(md_file, "root")
+        if doc:
+            documents.append(doc)
+            print(f"Processed {md_file.name}")
     
     for category in categories:
         category_path = wiki_path / category
@@ -86,7 +186,7 @@ def process_notion_wiki_data(wiki_dir=NOTION_WIKI_DIR):
             continue
             
         # Process each JSON file in the category directory
-        for json_file in category_path.glob("*.json"):
+        for json_file in category_path.rglob("*.json"):
             try:
                 with open(json_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
@@ -169,6 +269,12 @@ def process_notion_wiki_data(wiki_dir=NOTION_WIKI_DIR):
                 
             except Exception as e:
                 print(f"Error processing {json_file}: {e}")
+        
+        for md_file in category_path.rglob("*.md"):
+            doc = load_markdown_file(md_file, category)
+            if doc:
+                documents.append(doc)
+                print(f"Processed {md_file.name}")
     
     print(f"Processed {len(documents)} Notion Wiki documents")
     return documents
@@ -260,6 +366,14 @@ def process_trading_data():
     print(f"Processed a total of {len(all_documents)} trading data documents")
     return all_documents
 
+def process_discord_data(discord_dir=DISCORD_DATA_DIR):
+    print(f"Processing Discord data from {discord_dir}...")
+    discord_path = Path(discord_dir)
+    discord_path.mkdir(parents=True, exist_ok=True)
+    documents = load_discord_exports(discord_dir)
+    print(f"Processed {len(documents)} Discord documents")
+    return documents
+
 def create_vector_stores(notion_documents, trading_documents):
     """
     Create vector stores for both document types
@@ -274,8 +388,8 @@ def create_vector_stores(notion_documents, trading_documents):
     print("Creating vector stores...")
     
     # Initialize the embedding model with Google's generative embeddings
-    embeddings = GoogleGenerativeAIEmbeddings(
-        model="models/embedding-001",
+    embeddings = HuggingFaceEmbeddings(
+        model_name=get_embedding_model_name(),
     )
     
     # Create directories for vector stores
@@ -533,32 +647,19 @@ def create_rag_chain(retriever):
     Start by providing a brief overview of the strategy, then generate the complete algorithm as a Python file:
     """
 
-    prompt = PromptTemplate(
-        input_variables=["context", "question"],
-        template=rag_prompt_template,
-    )
-    
-    # Initialize Google Gemini model
-    llm = ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash-preview-04-17",
-        temperature=0.2  # Slightly increased temperature for more creative code generation
-    )
-    
-    # Create the RAG chain
-    rag_chain = RetrievalQA.from_chain_type(
-        llm=llm,
-        chain_type="stuff",
+    return ClaudeCliRagChain(
         retriever=retriever,
-        chain_type_kwargs={"prompt": prompt},
-        return_source_documents=True
+        prompt_template=rag_prompt_template,
+        cli_command=get_claude_cli_command(),
+        timeout_seconds=get_claude_cli_timeout_seconds(),
     )
-    
-    return rag_chain
 
 def main():
     """Main execution function"""
     # 1. Process notion wiki data
     notion_documents = process_notion_wiki_data()
+    discord_documents = process_discord_data()
+    notion_documents.extend(discord_documents)
     
     # 2. Process trading data
     trading_documents = process_trading_data()

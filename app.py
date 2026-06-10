@@ -11,6 +11,7 @@ print(f"--- END DEBUG ---")
 
 from src.rag.build_rag_system import (
     process_notion_wiki_data,
+    process_discord_data,
     process_trading_data,
     create_vector_stores,
     create_combined_retriever,
@@ -26,6 +27,8 @@ st.set_page_config(
 def initialize_rag_system():
     # Load data and create RAG system (only done once)
     notion_documents = process_notion_wiki_data()
+    discord_documents = process_discord_data()
+    notion_documents.extend(discord_documents)
     print(f"[DEBUG app.py] Number of Notion documents processed: {len(notion_documents)}")
     trading_documents = process_trading_data()
     print(f"[DEBUG app.py] Number of Trading documents processed: {len(trading_documents)}")
