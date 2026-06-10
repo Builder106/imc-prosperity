@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
 
 # Base URL of the Notion wiki
-BASE_URL = "https://imc-prosperity.notion.site/Prosperity-3-Wiki-19ee8453a09380529731c4e6fb697ea4"
+BASE_URL = "https://imc-prosperity.notion.site/prosperity-4-wiki"
 # Directory to save the JSON files
 SAVE_DIR = "../../../data/prosperity_wiki"
 # Directory to save code files
@@ -554,7 +554,7 @@ def scrape_notion_wiki():
             links = page.query_selector_all('a[href*="notion.site"]')
             for link in links:
                 href = link.get_attribute('href')
-                if href and "notion.site" in href and "Prosperity-3" in href:
+                if href and "notion.site" in href and "prosperity-4" in href.lower():
                     internal_links.add(href.split('?')[0])  # Remove URL parameters
         except Exception as e:
             print(f"Error with standard link selector: {e}")
@@ -582,7 +582,7 @@ def scrape_notion_wiki():
                 }
             """)
             for link in links_from_js:
-                if "Prosperity-3" in link or "prosperity" in link.lower():
+                if "prosperity-4" in link.lower():
                     internal_links.add(link)
         except Exception as e:
             print(f"Error extracting links with JavaScript: {e}")

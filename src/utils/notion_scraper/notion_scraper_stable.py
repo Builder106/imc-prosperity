@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
 
 # Base URL of the Notion wiki
-BASE_URL = "https://imc-prosperity.notion.site/Prosperity-3-Wiki-19ee8453a09380529731c4e6fb697ea4"
+BASE_URL = "https://imc-prosperity.notion.site/prosperity-4-wiki"
 # Directory to save the JSON files
 SAVE_DIR = "../../../data/prosperity_wiki"
 # Directory to save code files
@@ -54,6 +54,21 @@ def load_code_file_mapping(mapping_file="codefile_names.md"):
 
 # Load the code file mapping
 CODE_FILE_MAPPING = load_code_file_mapping()
+
+
+def safe_goto(page, url, timeout=30000, wait_until="domcontentloaded", retries=2, retry_wait_ms=1500):
+    attempt = 0
+    while attempt <= retries:
+        try:
+            page.goto(url, timeout=timeout, wait_until=wait_until)
+            return True
+        except Exception as e:
+            attempt += 1
+            if attempt > retries:
+                print(f"Failed to navigate to {url} after {retries + 1} attempts: {e}")
+                return False
+            print(f"Navigation failed for {url} (attempt {attempt}/{retries + 1}): {e}")
+            page.wait_for_timeout(retry_wait_ms)
 
 def save_json(data, folder, filename):
     """Save data to a JSON file."""
@@ -503,8 +518,10 @@ def scrape_notion_wiki():
         print(f"Accessing: {BASE_URL}")
         
         try:
-            # Change the wait_until strategy to 'domcontentloaded' instead of 'load'
-            page.goto(BASE_URL, timeout=60000, wait_until='domcontentloaded')
+            loaded = safe_goto(page, BASE_URL, timeout=60000, wait_until="domcontentloaded", retries=2, retry_wait_ms=2000)
+            if not loaded:
+                browser.close()
+                return
             print("Page loaded successfully")
             
         except Exception as e:
@@ -554,7 +571,7 @@ def scrape_notion_wiki():
             links = page.query_selector_all('a[href*="notion.site"]')
             for link in links:
                 href = link.get_attribute('href')
-                if href and "notion.site" in href and "Prosperity-3" in href:
+                if href and "notion.site" in href and "prosperity-4" in href.lower():
                     internal_links.add(href.split('?')[0])  # Remove URL parameters
         except Exception as e:
             print(f"Error with standard link selector: {e}")
@@ -582,7 +599,7 @@ def scrape_notion_wiki():
                 }
             """)
             for link in links_from_js:
-                if "Prosperity-3" in link or "prosperity" in link.lower():
+                if "prosperity-4" in link.lower():
                     internal_links.add(link)
         except Exception as e:
             print(f"Error extracting links with JavaScript: {e}")
@@ -600,7 +617,9 @@ def scrape_notion_wiki():
 
         for link in internal_links:
             print(f"Scraping: {link}")
-            page.goto(link)
+            loaded = safe_goto(page, link, timeout=45000, wait_until="domcontentloaded", retries=2, retry_wait_ms=2000)
+            if not loaded:
+                continue
             page.wait_for_timeout(8000)  # Wait longer 
             soup = BeautifulSoup(page.content(), "html.parser")
             

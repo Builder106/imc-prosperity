@@ -1,0 +1,16 @@
+# Prosperity Wiki Index
+
+- [faq](about_prosperity/faq.md)
+- [game mechanics overview](about_prosperity/game_mechanics_overview.md)
+- [prosperity 4 wiki](about_prosperity/prosperity_4_wiki.md)
+- [round schedule](about_prosperity/round_schedule.md)
+- [rules](about_prosperity/rules.md)
+- [storyline](about_prosperity/storyline.md)
+- [what is prosperity?](about_prosperity/what_is_prosperity?.md)
+- [who is imc?](about_prosperity/who_is_imc?.md)
+- [programming resources](e-learning_center/programming_resources.md)
+- [trading glossary](e-learning_center/trading_glossary.md)
+- [writing an algorithm in python](e-learning_center/writing_an_algorithm_in_python.md)
+- [round 1 - “trading groundwork”](rounds/round_1_-_“trading_groundwork”.md)
+- [round 2 - “growing your outpost”](rounds/round_2_-_“growing_your_outpost”.md)
+- [tutorial round - “simulator practice”](rounds/tutorial_round_-_“simulator_practice”.md)
