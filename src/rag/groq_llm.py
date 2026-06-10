@@ -45,6 +45,11 @@ class GroqRagChain:
         self.timeout_seconds = timeout_seconds
 
     def _retrieve_documents(self, query):
+        if self.retriever is None:
+            raise RuntimeError(
+                "No retriever is available — the vector store failed to build. "
+                "Check the app logs for the underlying error."
+            )
         if hasattr(self.retriever, "invoke"):
             documents = self.retriever.invoke(query)
         else:

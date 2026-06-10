@@ -394,22 +394,20 @@ def create_vector_stores(notion_documents, trading_documents):
         model_name=get_embedding_model_name(),
     )
     
-    # Create directories for vector stores
-    os.makedirs(VECTOR_DB_DIR / "notion", exist_ok=True)
-    os.makedirs(VECTOR_DB_DIR / "trading", exist_ok=True)
-    os.makedirs(VECTOR_DB_DIR / "code", exist_ok=True)
-    
     # Create text splitter optimized for code and general content
     text_splitter = RecursiveCharacterTextSplitter.from_language(
         language="python",  # Default to Python handling
         chunk_size=1500,
         chunk_overlap=200,
     )
-    
+
     # Initialize vector stores as None
     notion_vectorstore = None
     trading_vectorstore = None
     code_vectorstore = None
+    # Capture any per-store build failures so a total failure can be surfaced
+    # instead of silently returning a None retriever.
+    build_errors = []
     
     # Helper function to ensure document is a proper Document object
     def ensure_document(item):
@@ -493,7 +491,6 @@ def create_vector_stores(notion_documents, trading_documents):
                 notion_vectorstore = Chroma.from_documents(
                     documents=filtered_notion_docs,
                     embedding=embeddings,
-                    persist_directory=str(VECTOR_DB_DIR / "notion")
                 )
                 
                 # Extract code blocks for specialized code search
@@ -511,10 +508,11 @@ def create_vector_stores(notion_documents, trading_documents):
                     code_vectorstore = Chroma.from_documents(
                         documents=filtered_code_blocks,
                         embedding=embeddings,
-                        persist_directory=str(VECTOR_DB_DIR / "code")
                     )
         except Exception as e:
             print(f"Error processing notion documents: {e}")
+            import traceback
+            build_errors.append(f"notion: {e!r}\n{traceback.format_exc()}")
     else:
         print("No notion documents to process")
     
@@ -561,17 +559,25 @@ def create_vector_stores(notion_documents, trading_documents):
                 trading_vectorstore = Chroma.from_documents(
                     documents=filtered_trading_docs,
                     embedding=embeddings,
-                    persist_directory=str(VECTOR_DB_DIR / "trading")
                 )
         except Exception as e:
             print(f"Error processing trading documents: {e}")
+            import traceback
+            build_errors.append(f"trading: {e!r}\n{traceback.format_exc()}")
     else:
         print("No trading documents to process")
     
     # Documents are automatically persisted in Chroma 0.4.x+
     # No need to call persist() method anymore
     
-    print("Vector stores created and persisted automatically")
+    print("Vector stores created")
+    # If we had documents but built nothing, surface the captured cause instead
+    # of letting the caller fall over later on a None retriever.
+    if (notion_documents or trading_documents) and notion_vectorstore is None and trading_vectorstore is None:
+        raise RuntimeError(
+            "Failed to build any vector store from the available documents.\n"
+            + "\n".join(build_errors)
+        )
     return notion_vectorstore, trading_vectorstore, code_vectorstore
 
 def create_combined_retriever(notion_vectorstore, trading_vectorstore, code_vectorstore=None):
