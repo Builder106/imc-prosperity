@@ -3,6 +3,7 @@ langchain
 langchain-community
 langchain-text-splitters
 chromadb
+pysqlite3-binary; sys_platform == "linux"
 groq
 python-dotenv
 pandas

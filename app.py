@@ -1,5 +1,16 @@
 import os
 
+# Chroma requires sqlite3 >= 3.35, but Streamlit Cloud ships an older system
+# sqlite. Swap in pysqlite3 (a manylinux wheel) before anything imports chromadb.
+# No-ops locally where pysqlite3 isn't installed (e.g. macOS).
+try:
+    __import__("pysqlite3")
+    import sys
+
+    sys.modules["sqlite3"] = sys.modules.pop("pysqlite3")
+except ImportError:
+    pass
+
 import streamlit as st
 
 from src.rag.build_rag_system import (
