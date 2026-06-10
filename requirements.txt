@@ -1,18 +1,18 @@
 streamlit
-langchain==0.2.17
-langchain-core==0.2.43
-langchain-community==0.2.19
-langchain-text-splitters==0.2.4
+langchain==1.3.7
+langchain-core==1.4.4
+langchain-community==0.4.2
+langchain-text-splitters==1.1.2
 chromadb
 # Align Chroma's telemetry stack: Cloud otherwise resolved an ancient
 # opentelemetry (1.11.x) whose protobuf-generated code is incompatible with a
 # modern protobuf runtime, crashing `import chromadb`. Force a recent
 # opentelemetry (pure-Python, always installable) and keep protobuf on 6.x.
-protobuf<7
-opentelemetry-api==1.41.0
-opentelemetry-sdk==1.41.0
-opentelemetry-proto==1.41.0
-opentelemetry-exporter-otlp-proto-grpc==1.41.0
+protobuf<8
+opentelemetry-api==1.42.1
+opentelemetry-sdk==1.42.1
+opentelemetry-proto==1.42.1
+opentelemetry-exporter-otlp-proto-grpc==1.42.1
 pysqlite3-binary; sys_platform == "linux"
 groq
 python-dotenv
