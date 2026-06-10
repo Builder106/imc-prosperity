@@ -1,7 +1,8 @@
 streamlit
-langchain
-langchain-community
-langchain-text-splitters
+langchain==0.2.17
+langchain-core==0.2.43
+langchain-community==0.2.19
+langchain-text-splitters==0.2.4
 chromadb
 pysqlite3-binary; sys_platform == "linux"
 groq
