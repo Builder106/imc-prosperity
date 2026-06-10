@@ -1,14 +1,11 @@
 version: 2
 updates:
-  - package-ecosystem: pip
-    directory: "/"
-    schedule:
-      interval: weekly
-    open-pull-requests-limit: 5
-    groups:
-      python-deps:
-        patterns: ["*"]
-
+  # Only GitHub Actions are auto-updated. Python dependencies are managed
+  # deliberately — requirements.txt pins the deploy-critical packages
+  # (langchain 0.2.x, recent opentelemetry, protobuf<7) and intentionally
+  # leaves the heavy stack unpinned for the Cloud resolver. Automated bumps
+  # there reintroduce the install/import failures that were just stabilized,
+  # so the pip ecosystem is excluded.
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
