@@ -1,13 +1,6 @@
-import sys
 import os
-import streamlit as st
 
-print(f"--- DEBUG: app.py execution started ---")
-print(f"Current working directory (os.getcwd()): {os.getcwd()}")
-print(f"Python sys.path:")
-for p in sys.path:
-    print(f"  - {p}")
-print(f"--- END DEBUG ---")
+import streamlit as st
 
 from src.rag.build_rag_system import (
     process_notion_wiki_data,
@@ -15,58 +8,169 @@ from src.rag.build_rag_system import (
     process_trading_data,
     create_vector_stores,
     create_combined_retriever,
-    create_rag_chain
+    create_rag_chain,
 )
 
+# --------------------------------------------------------------------------- #
+# Page configuration
+# --------------------------------------------------------------------------- #
 st.set_page_config(
     page_title="IMC Prosperity Trading Assistant",
-    layout="wide"
+    page_icon="📈",
+    layout="wide",
+    initial_sidebar_state="expanded",
 )
 
-@st.cache_resource
+# --------------------------------------------------------------------------- #
+# Styling
+# --------------------------------------------------------------------------- #
+st.markdown(
+    """
+    <style>
+      /* Tighten the top whitespace Streamlit leaves above the content. */
+      .block-container { padding-top: 2.5rem; max-width: 960px; }
+
+      /* Gradient wordmark for the header. */
+      .app-title {
+        font-size: 2rem; font-weight: 700; letter-spacing: -0.02em;
+        background: linear-gradient(90deg, #10B981 0%, #34D399 60%, #6EE7B7 100%);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        margin-bottom: 0.15rem;
+      }
+      .app-subtitle { color: #8B98A5; font-size: 0.95rem; margin-bottom: 1.25rem; }
+
+      /* Make the example-prompt buttons read as quiet suggestion chips. */
+      section[data-testid="stSidebar"] .stButton > button {
+        width: 100%; text-align: left; border: 1px solid #2A333D;
+        background: #11181F; color: #C9D4DF; font-size: 0.85rem;
+        padding: 0.5rem 0.75rem; white-space: normal; line-height: 1.3;
+      }
+      section[data-testid="stSidebar"] .stButton > button:hover {
+        border-color: #10B981; color: #FFFFFF;
+      }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+EXAMPLE_PROMPTS = [
+    "What products and position limits are introduced in Round 1?",
+    "Write a market-making Trader class for RAINFOREST_RESIN.",
+    "Explain a basket-arbitrage strategy for the PICNIC_BASKET products.",
+    "How should I manage risk against position limits in my algorithm?",
+]
+
+
+# --------------------------------------------------------------------------- #
+# RAG system (built once, cached for the session)
+# --------------------------------------------------------------------------- #
+@st.cache_resource(show_spinner="Loading knowledge base and building the RAG system…")
 def initialize_rag_system():
-    # Load data and create RAG system (only done once)
     notion_documents = process_notion_wiki_data()
-    discord_documents = process_discord_data()
-    notion_documents.extend(discord_documents)
-    print(f"[DEBUG app.py] Number of Notion documents processed: {len(notion_documents)}")
+    notion_documents.extend(process_discord_data())
     trading_documents = process_trading_data()
-    print(f"[DEBUG app.py] Number of Trading documents processed: {len(trading_documents)}")
     notion_vectorstore, trading_vectorstore, code_vectorstore = create_vector_stores(
         notion_documents, trading_documents
     )
-    retriever = create_combined_retriever(notion_vectorstore, trading_vectorstore, code_vectorstore)
-    if retriever is None:
-        print("[DEBUG app.py] Retriever is None before calling create_rag_chain.")
-    else:
-        print(f"[DEBUG app.py] Retriever type: {type(retriever)}")
-    rag_chain = create_rag_chain(retriever)
-    return rag_chain
+    retriever = create_combined_retriever(
+        notion_vectorstore, trading_vectorstore, code_vectorstore
+    )
+    return create_rag_chain(retriever)
 
-# Initialize the system
-rag_chain = initialize_rag_system()
 
-# App UI
-st.title("IMC Prosperity Trading Assistant")
-st.markdown("""
-Ask questions about IMC Prosperity trading data and get AI-powered insights.
-""")
+def render_sources(source_documents):
+    """Render retrieved context inside a collapsed expander."""
+    if not source_documents:
+        return
+    label = f"📚 {len(source_documents)} source document(s)"
+    with st.expander(label):
+        for i, doc in enumerate(source_documents, start=1):
+            source = doc.metadata.get("source", "Unknown")
+            st.markdown(f"**{i}. `{os.path.basename(str(source))}`**")
+            st.code(doc.page_content, language="text")
 
-# User input
-query = st.text_input("Enter your question:", key="query")
 
-# Display results
-if query:
-    with st.spinner("Processing your question..."):
-        result = rag_chain.invoke({"query": query})
-        
-    st.markdown("### Answer")
-    st.markdown(result["result"])
-    
-    # Optional: Show sources/documents used
-    with st.expander("View Source Documents"):
-        for i, doc in enumerate(result["source_documents"]):
-            st.markdown(f"**Source {i+1}**")
-            st.markdown(f"```\n{doc.page_content}\n```")
-            st.markdown(f"*Source: {doc.metadata.get('source', 'Unknown')}*")
-            st.divider()
+# --------------------------------------------------------------------------- #
+# Sidebar
+# --------------------------------------------------------------------------- #
+with st.sidebar:
+    st.markdown("### 📈 Prosperity Assistant")
+    st.caption("RAG-powered insights over IMC Prosperity wiki, Discord, and trading data.")
+
+    with st.expander("About", expanded=False):
+        st.markdown(
+            "Ask questions about products, position limits, and strategies — or "
+            "request a complete, executable `Trader` algorithm. Answers are grounded "
+            "in the competition wiki, community Discord threads, and historical "
+            "trading data via retrieval-augmented generation."
+        )
+
+    st.markdown("**Try asking**")
+    for prompt in EXAMPLE_PROMPTS:
+        if st.button(prompt, key=f"ex_{prompt}"):
+            st.session_state.pending_prompt = prompt
+
+    st.divider()
+    if st.button("🗑️ Clear conversation", key="clear"):
+        st.session_state.messages = []
+        st.rerun()
+
+    st.caption("Built for the IMC Prosperity trading competition.")
+
+
+# --------------------------------------------------------------------------- #
+# Main panel
+# --------------------------------------------------------------------------- #
+st.markdown('<div class="app-title">IMC Prosperity Trading Assistant</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="app-subtitle">Ask about products, position limits, and strategies — '
+    "or request a ready-to-run trading algorithm.</div>",
+    unsafe_allow_html=True,
+)
+
+try:
+    rag_chain = initialize_rag_system()
+except Exception as exc:  # surface setup problems instead of a raw traceback
+    st.error(
+        "The assistant could not start. Check that the Claude CLI is authenticated "
+        "and the knowledge base is available."
+    )
+    st.exception(exc)
+    st.stop()
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+# Replay the conversation so far.
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+        if message["role"] == "assistant":
+            render_sources(message.get("sources", []))
+
+# A clicked example prompt stands in for typed input on this rerun.
+prompt = st.chat_input("Ask a question, or request a trading algorithm…")
+pending = st.session_state.pop("pending_prompt", None)
+if pending:
+    prompt = pending
+
+if prompt:
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    with st.chat_message("assistant"):
+        with st.spinner("Retrieving context and generating an answer…"):
+            try:
+                result = rag_chain.invoke({"query": prompt})
+                answer = result["result"]
+                sources = result.get("source_documents", [])
+            except Exception as exc:
+                answer = f"⚠️ Something went wrong while answering: `{exc}`"
+                sources = []
+        st.markdown(answer)
+        render_sources(sources)
+
+    st.session_state.messages.append(
+        {"role": "assistant", "content": answer, "sources": sources}
+    )
