@@ -25,9 +25,16 @@ from src.rag.build_rag_system import (
 # --------------------------------------------------------------------------- #
 # Page configuration
 # --------------------------------------------------------------------------- #
+# Custom browser-tab favicon: the candlestick logo (assets/logo.png). Resolved
+# relative to this file so it works regardless of the working directory the app
+# is launched from (Streamlit Cloud runs from the repo root). Streamlit's
+# page_icon expects a raster path/emoji — it doesn't render SVG favicons — so we
+# point at the PNG, not logo.svg. Falls back to the chart emoji if the file is
+# missing.
+_FAVICON = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "logo.png")
 st.set_page_config(
     page_title="IMC Prosperity Trading Assistant",
-    page_icon="📈",
+    page_icon=_FAVICON if os.path.exists(_FAVICON) else "📈",
     layout="wide",
     initial_sidebar_state="expanded",
 )
