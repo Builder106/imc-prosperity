@@ -9,3 +9,13 @@ font = "sans serif"
 [client]
 showErrorDetails = true
 toolbarMode = "minimal"
+
+[server]
+# Disable the source file-watcher. On Streamlit Community Cloud it serves no
+# purpose (redeploys are git-driven), and it crawls every imported module's
+# __path__ — which makes `transformers` eagerly import its vision models
+# (vitpose/yolos/zoedepth), whose modules do top-level `torchvision` imports.
+# This is a text-only RAG app (sentence-transformers all-MiniLM-L6-v2 needs
+# torch, not torchvision), so those imports fail and spam ModuleNotFoundError
+# at startup. Turning the watcher off silences them without pulling torchvision.
+fileWatcherType = "none"
