@@ -22,6 +22,8 @@ from .model_config import (
     get_llm_model_name,
     get_llm_temperature,
     get_embedding_model_name,
+    get_max_completion_tokens,
+    get_max_context_chars,
 )
 
 # Load environment variables
@@ -595,17 +597,17 @@ def create_combined_retriever(notion_vectorstore, trading_vectorstore, code_vect
     weights = []
     
     if notion_vectorstore:
-        notion_retriever = notion_vectorstore.as_retriever(search_kwargs={"k": 45})
+        notion_retriever = notion_vectorstore.as_retriever(search_kwargs={"k": 10})
         retrievers.append(notion_retriever)
         weights.append(0.2)
     
     if trading_vectorstore:
-        trading_retriever = trading_vectorstore.as_retriever(search_kwargs={"k": 65})
+        trading_retriever = trading_vectorstore.as_retriever(search_kwargs={"k": 15})
         retrievers.append(trading_retriever)
         weights.append(0.3)
         
     if code_vectorstore:
-        code_retriever = code_vectorstore.as_retriever(search_kwargs={"k": 50})
+        code_retriever = code_vectorstore.as_retriever(search_kwargs={"k": 12})
         retrievers.append(code_retriever)
         weights.append(0.5)
     
@@ -666,6 +668,8 @@ def create_rag_chain(retriever):
         api_key=get_groq_api_key(),
         temperature=get_llm_temperature(),
         timeout_seconds=get_groq_timeout_seconds(),
+        max_context_chars=get_max_context_chars(),
+        max_completion_tokens=get_max_completion_tokens(),
     )
 
 def main():

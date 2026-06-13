@@ -19,3 +19,16 @@ def get_groq_api_key():
 
 def get_groq_timeout_seconds():
     return int(os.getenv("GROQ_TIMEOUT_SECONDS", "180"))
+
+
+def get_max_completion_tokens():
+    # Bounds the model's output so input + reserved output stays under the
+    # tokens-per-minute limit.
+    return int(os.getenv("LLM_MAX_TOKENS", "4096"))
+
+
+def get_max_context_chars():
+    # Caps retrieved-context size fed into the prompt. ~12k chars ~= ~3k tokens,
+    # leaving room for the template + question + completion under Groq's free
+    # tier (12k TPM for llama-3.3-70b). Raise it on a higher tier.
+    return int(os.getenv("RAG_MAX_CONTEXT_CHARS", "12000"))
