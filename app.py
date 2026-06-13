@@ -150,7 +150,10 @@ st.markdown(
 # config keys across so the os.getenv-based model config picks them up. Locally
 # this no-ops (no secrets file) and .env is used instead.
 try:
-    for _key in ("GROQ_API_KEY", "LLM_MODEL", "LLM_TEMPERATURE", "GROQ_TIMEOUT_SECONDS", "EMBEDDING_MODEL"):
+    # HF_TOKEN is read by huggingface-hub when sentence-transformers pulls the
+    # embedding model; bridging it authenticates the download (higher rate limit,
+    # no "unauthenticated requests to the HF Hub" warning).
+    for _key in ("GROQ_API_KEY", "LLM_MODEL", "LLM_TEMPERATURE", "GROQ_TIMEOUT_SECONDS", "EMBEDDING_MODEL", "HF_TOKEN"):
         if _key in st.secrets:
             os.environ.setdefault(_key, str(st.secrets[_key]))
 except Exception:

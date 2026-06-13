@@ -28,5 +28,3 @@ pandas
 numpy 
 sentence-transformers
 beautifulsoup4
-playwright
-pytest
