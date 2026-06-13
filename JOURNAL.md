@@ -4,6 +4,10 @@
 > happen — retrospectives need this raw material to land. Reverse-chronological;
 > one paragraph max per entry.
 
+## 2026-06-13 — Demo suite was non-executable; wrote the missing step library #incident
+
+A test audit found `e2e/demo/steps/` completely empty while `playwright.demo.config.ts` pointed `steps` at it — so every Gherkin step in the TradeTell tour was undefined and the demo suite couldn't run at all. The `01-tradetell-tour.feature` scenario was also truncated, ending on a dangling `When I open the retrieved sources` with no `Then`. Wrote `tradetell.steps.ts` reusing the selectors the two `probe*.mjs` scripts had already validated against the live app (`.app-title`, `[data-testid="stChatInput"] textarea`, `[data-testid="stChatMessage"]`, the "Retrieving context…" spinner text, and the `📚 N source document(s)` expander), plus a `dwell()` helper for demo pacing and 360s timeouts to absorb the RAG warm-up. Closed the feature with `Then I see the retrieved source documents`. `bddgen` + `playwright test --list` now resolve all steps and discover all 3 scenarios; `tsc --noEmit` is clean.
+
 ## 2026-06-10 — Repo brought up to the standard baseline #milestone
 
 Added the missing project scaffolding in one pass: MIT `LICENSE`, `CONTRIBUTING`,

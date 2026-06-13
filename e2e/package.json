@@ -1,0 +1,14 @@
+{
+  "name": "tradetell-e2e",
+  "private": true,
+  "description": "Gherkin demo suite for the IMC Prosperity Trading Assistant (TradeTell)",
+  "scripts": {
+    "demo": "bddgen --config playwright.demo.config.ts && playwright test --config playwright.demo.config.ts"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "@types/node": "^22.0.0",
+    "playwright-bdd": "^8.0.0",
+    "typescript": "^5.6.0"
+  }
+}

@@ -25,3 +25,9 @@ vectordb
 
 # Generated logs
 *.log
+
+# Node modules
+node_modules/
+
+# playwright-bdd generated specs
+e2e/.features-gen/
