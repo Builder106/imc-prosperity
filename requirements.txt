@@ -1,8 +1,16 @@
 streamlit
-langchain==0.2.17
-langchain-core==0.2.43
-langchain-community==0.2.19
-langchain-text-splitters==0.2.4
+# Upgraded 0.2.x -> 1.x to clear 10 Dependabot CVEs (critical secret-extraction
+# in langchain-core <0.3.81; highs incl. path traversal <1.2.22, XXE, unsafe
+# deserialization). langchain-classic carries the legacy EnsembleRetriever;
+# embeddings/vectorstores moved to the langchain-huggingface/langchain-chroma
+# integration packages. Resolved + import-verified on 2026-06-13.
+langchain==1.3.9
+langchain-core==1.4.7
+langchain-community==0.4.2
+langchain-text-splitters==1.1.2
+langchain-classic==1.0.8
+langchain-huggingface==1.2.2
+langchain-chroma==1.1.0
 chromadb
 # Align Chroma's telemetry stack: Cloud otherwise resolved an ancient
 # opentelemetry (1.11.x) whose protobuf-generated code is incompatible with a

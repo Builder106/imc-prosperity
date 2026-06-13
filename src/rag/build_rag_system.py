@@ -2,12 +2,16 @@ import os
 import json
 import re
 from pathlib import Path
-from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_community.vectorstores import Chroma
+# langchain 1.x: embeddings + vectorstores live in dedicated integration
+# packages; Document moved to langchain_core; the legacy EnsembleRetriever
+# moved to langchain-classic. filter_complex_metadata + the text splitter
+# kept their homes.
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_chroma import Chroma
 from langchain_community.vectorstores.utils import filter_complex_metadata
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain.retrievers import EnsembleRetriever
-from langchain.schema import Document
+from langchain_classic.retrievers import EnsembleRetriever
+from langchain_core.documents import Document
 from dotenv import load_dotenv
 from .process_raw_trading_data import process_round_data, discover_rounds
 from .groq_llm import GroqRagChain

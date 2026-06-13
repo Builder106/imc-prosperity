@@ -3,7 +3,7 @@ from pathlib import Path
 from dataclasses import dataclass
 
 try:
-    from langchain.schema import Document
+    from langchain_core.documents import Document
 except Exception:
     @dataclass
     class Document:

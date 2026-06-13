@@ -50,10 +50,10 @@ class GroqRagChain:
                 "No retriever is available — the vector store failed to build. "
                 "Check the app logs for the underlying error."
             )
-        if hasattr(self.retriever, "invoke"):
-            documents = self.retriever.invoke(query)
-        else:
-            documents = self.retriever.get_relevant_documents(query)
+        # langchain 1.x retrievers expose .invoke(); the legacy
+        # get_relevant_documents() was removed. Every langchain retriever
+        # (incl. EnsembleRetriever) has .invoke, so call it directly.
+        documents = self.retriever.invoke(query)
         return documents or []
 
     def invoke(self, inputs):
