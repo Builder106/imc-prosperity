@@ -6,10 +6,10 @@
     "demo": "bddgen --config playwright.demo.config.ts && playwright test --config playwright.demo.config.ts"
   },
   "devDependencies": {
-    "@playwright/test": "^1.49.0",
-    "@types/node": "^22.0.0",
-    "playwright-bdd": "^8.0.0",
-    "typescript": "^5.6.0"
+    "@playwright/test": "^1.61.1",
+    "@types/node": "^26.0.1",
+    "playwright-bdd": "^9.2.0",
+    "typescript": "^6.0.3"
   },
   "overrides": {
     "uuid": "^11.1.1"
