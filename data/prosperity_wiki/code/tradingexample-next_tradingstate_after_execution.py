@@ -6,12 +6,12 @@ listings = {
 "PRODUCT1": Listing(
 symbol="PRODUCT1",
 product="PRODUCT1",
-denomination: "SEASHELLS"
+denomination="SEASHELLS"
 ),
 "PRODUCT2": Listing(
 symbol="PRODUCT2",
 product="PRODUCT2",
-denomination: "SEASHELLS"
+denomination="SEASHELLS"
 ),
 }
 
