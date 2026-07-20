@@ -355,13 +355,13 @@ def process_trading_data():
     all_documents = []
     
     # Discover available rounds
-    available_rounds = discover_rounds(TRADING_DATA_DIR)
+    available_rounds = discover_rounds(str(TRADING_DATA_DIR))
     print(f"Discovered rounds: {available_rounds}")
     
     # Process each available round
     for round_name in available_rounds:
         print(f"Processing {round_name}...")
-        json_documents = process_round_data(round_name, TRADING_DATA_DIR)
+        json_documents = process_round_data(round_name, str(TRADING_DATA_DIR))
         
         # Convert JSON documents to LangChain Document objects
         for json_doc in json_documents:
@@ -402,7 +402,7 @@ def create_vector_stores(notion_documents, trading_documents):
     
     # Create text splitter optimized for code and general content
     text_splitter = RecursiveCharacterTextSplitter.from_language(
-        language="python",  # Default to Python handling
+        language="python",  # type: ignore
         chunk_size=1500,
         chunk_overlap=200,
     )
@@ -415,7 +415,6 @@ def create_vector_stores(notion_documents, trading_documents):
     # instead of silently returning a None retriever.
     build_errors = []
     
-    # Helper function to ensure document is a proper Document object
     def ensure_document(item):
         if isinstance(item, Document):
             return item
@@ -433,7 +432,6 @@ def create_vector_stores(notion_documents, trading_documents):
             # Last resort - convert to string
             return Document(page_content=str(item), metadata={})
     
-    # Helper function to clean metadata to ensure it only contains simple types
     def clean_metadata(metadata):
         cleaned = {}
         for key, value in metadata.items():
@@ -506,7 +504,7 @@ def create_vector_stores(notion_documents, trading_documents):
                     filtered_code_blocks = []
                     for doc in code_blocks:
                         try:
-                            filtered_code_blocks.append(filter_complex_metadata(ensure_document(doc)))
+                            filtered_code_blocks.append(filter_complex_metadata(ensure_document(doc)))  # type: ignore
                         except Exception as e:
                             print(f"Error filtering code block metadata: {e}")
                     

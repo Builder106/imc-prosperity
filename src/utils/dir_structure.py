@@ -36,7 +36,7 @@ def list_directory_structure(startpath):
 
 def _list_dir_recursive(directory_path, prefix=""):
     """
-    Internal helper function to recursively list directory contents.
+    Recursively lists directory contents.
 
     Args:
         directory_path (Path): The Path object of the current directory to list.
