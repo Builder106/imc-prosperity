@@ -48,7 +48,7 @@ def process_prices_and_trades(prices_file_path, trades_file_path, output_dir="pr
             day_prices = prices_df[prices_df['day'] == day] if 'day' in prices_df.columns else prices_df
             
             # Get products for this day
-            products = day_prices['product'].unique()
+            products = day_prices['product'].unique()  # type: ignore
             
             for product in products:
                 # Filter data for this product/day
@@ -66,8 +66,8 @@ def process_prices_and_trades(prices_file_path, trades_file_path, output_dir="pr
                 if product_trades is not None and len(product_trades) > 0:
                     # Merge on timestamp using merge_asof to handle different timestamps
                     merged_df = pd.merge_asof(
-                        product_trades.sort_values('timestamp'),
-                        product_prices.sort_values('timestamp'),
+                        product_trades.sort_values('timestamp'),  # type: ignore
+                        product_prices.sort_values('timestamp'),  # type: ignore
                         on='timestamp',
                         direction='backward'
                     )
@@ -118,7 +118,8 @@ def process_round_csv(file_path, output_dir="processed_data"):
         # Determine how to group the data based on the columns present
         if 'product' in df.columns and 'day' in df.columns:
             # Standard market data format
-            for (day, product), group in df.groupby(['day', 'product']):
+            for key, group in df.groupby(['day', 'product']):
+                day, product = key  # type: ignore
                 process_group(day, product, group, file_path, output_dir, documents)
                 
         elif 'symbol' in df.columns:
@@ -344,7 +345,7 @@ def calculate_price_impact_metrics(df):
                 df_sorted.loc[valid_rows, 'signed_volume'], 
                 df_sorted.loc[valid_rows, 'price_change']
             )
-            metrics["kyles_lambda"] = abs(slope)
+            metrics["kyles_lambda"] = abs(slope)  # type: ignore
             
             # Amihud's illiquidity measure
             df_sorted['abs_return'] = abs(df_sorted['price_change'] / df_sorted['price'].shift(1))
@@ -494,12 +495,12 @@ def calculate_statistical_metrics(df):
             # Ljung-Box test for autocorrelation (p < 0.05 suggests autocorrelation)
             try:
                 # Try newer scipy versions
-                lb_stat, lb_pval = stats.acorr_ljungbox(valid_returns, lags=[5], return_df=False)
+                lb_stat, lb_pval = stats.acorr_ljungbox(valid_returns, lags=[5], return_df=False)  # type: ignore
                 metrics["returns_autocorr_pvalue"] = lb_pval[0]
             except (AttributeError, TypeError):
                 try:
                     # Try older scipy versions
-                    lb_stat, lb_pval = stats.acorr_ljungbox(valid_returns, nlags=5)
+                    lb_stat, lb_pval = stats.acorr_ljungbox(valid_returns, nlags=5)  # type: ignore
                     metrics["returns_autocorr_pvalue"] = lb_pval[0]
                 except:
                     # Fallback if function not available

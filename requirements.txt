@@ -21,10 +21,14 @@ opentelemetry-api==1.41.0
 opentelemetry-sdk==1.41.0
 opentelemetry-proto==1.41.0
 opentelemetry-exporter-otlp-proto-grpc==1.41.0
-pysqlite3-binary; sys_platform == "linux"
+pysqlite3-binary; sys_platform == "linux" and platform_machine == "x86_64"
 groq
 python-dotenv
 pandas
 numpy 
 sentence-transformers
 beautifulsoup4
+jsonpickle
+scipy
+pytest
+playwright

@@ -40,7 +40,7 @@ class Trader:
         best_ask = min(order_depth.sell_orders.keys())
         return (best_bid + best_ask) / 2.0
 
-    def run(self, state: TradingState) -> Dict[str, List[Order]]:
+    def run(self, state: TradingState) -> tuple[dict[str, list[Order]], int, str]:
         """
         Takes TradingState and returns orders dictionary.
         Only trades based on retrieved information.

@@ -10,6 +10,7 @@ ROUND1_DIR = Path(__file__).resolve().parents[1] / "src" / "algorithms" / "round
 def _load_module(module_name: str, file_name: str):
     module_path = ROUND1_DIR / file_name
     spec = importlib.util.spec_from_file_location(module_name, module_path)
+    assert spec is not None
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
     spec.loader.exec_module(module)
@@ -18,7 +19,7 @@ def _load_module(module_name: str, file_name: str):
 
 if "jsonpickle" not in sys.modules:
     jsonpickle_stub = types.ModuleType("jsonpickle")
-    jsonpickle_stub.encode = lambda value: str(value)
+    setattr(jsonpickle_stub, "encode", lambda value: str(value))
     sys.modules["jsonpickle"] = jsonpickle_stub
 
 datamodel = _load_module("round1_datamodel", "datamodel.py")

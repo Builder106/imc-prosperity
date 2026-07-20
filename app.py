@@ -168,6 +168,7 @@ except Exception as exc:  # surface setup problems instead of a raw traceback
     )
     st.exception(exc)
     st.stop()
+    raise exc # Help Pyright understand execution stops here
 
 if "messages" not in st.session_state:
     st.session_state.messages = []

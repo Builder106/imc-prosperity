@@ -1,7 +1,7 @@
 import json
 from typing import Dict, List, Tuple
 
-from datamodel import Order, OrderDepth, TradingState
+from datamodel import Order, OrderDepth, TradingState  # type: ignore
 
 ASH = "ASH_COATED_OSMIUM"
 PEPPER = "INTARIAN_PEPPER_ROOT"

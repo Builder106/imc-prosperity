@@ -1,0 +1,11 @@
+{
+  "venvPath": ".",
+  "venv": ".venv",
+  "exclude": [
+    "tools",
+    "data/prosperity_wiki/code",
+    "IMC_visualizer_prereqs.py",
+    ".venv",
+    ".git"
+  ]
+}

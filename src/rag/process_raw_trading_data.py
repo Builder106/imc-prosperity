@@ -47,9 +47,9 @@ def process_trading_csv(file_path, output_dir):
         # Handle different file formats
         if 'product' in df.columns and 'day' in df.columns:
             # Standard market data format
-            for (day, product), group in df.groupby(['day', 'product']):
+            for key, group in df.groupby(['day', 'product']):
+                day, product = key  # type: ignore
                 process_market_data_group(day, product, group, file_path, output_dir, documents, file_type, round_info)
-                
         elif 'symbol' in df.columns:
             # Trade data format
             for symbol, group in df.groupby('symbol'):
@@ -342,9 +342,12 @@ def discover_rounds(trading_data_dir="trading_data"):
         round_dirs = [d for d in base_dir.iterdir() 
                      if d.is_dir() and re.match(r'round_\d+', d.name, re.IGNORECASE)]
         
+        def get_round_number(d):
+            match = re.search(r'round_(\d+)', d.name)
+            return int(match.group(1)) if match else 0
+            
         # Sort by round number
-        round_dirs.sort(key=lambda d: int(re.search(r'round_(\d+)', d.name).group(1)))
-        
+        round_dirs.sort(key=get_round_number)        
         return [d.name for d in round_dirs]
     except Exception as e:
         print(f"Error discovering rounds: {e}")

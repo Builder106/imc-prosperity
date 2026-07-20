@@ -248,7 +248,7 @@ class Trader:
     def calculate_mid_price(self, order_depth: OrderDepth) -> float:
         """Calculate the mid price from the order book."""
         if not order_depth.buy_orders or not order_depth.sell_orders:
-            return None
+            return None  # type: ignore
         
         best_bid = max(order_depth.buy_orders.keys())
         best_ask = min(order_depth.sell_orders.keys())
@@ -258,7 +258,7 @@ class Trader:
         """Calculate volume-weighted average price for a side (buy or sell)."""
         if side == "buy":
             if not order_depth.buy_orders:
-                return None
+                return None  # type: ignore
             total_volume = 0
             weighted_sum = 0
             for price, volume in order_depth.buy_orders.items():
@@ -266,14 +266,14 @@ class Trader:
                 total_volume += volume
         else:  # sell
             if not order_depth.sell_orders:
-                return None
+                return None  # type: ignore
             total_volume = 0
             weighted_sum = 0
             for price, volume in order_depth.sell_orders.items():
                 weighted_sum += price * abs(volume)
                 total_volume += abs(volume)
                 
-        return weighted_sum / total_volume if total_volume > 0 else None
+        return weighted_sum / total_volume if total_volume > 0 else None  # type: ignore
 
     def calculate_order_imbalance(self, order_depth: OrderDepth) -> float:
         """Calculate order imbalance from the order book."""
