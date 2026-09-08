@@ -1,5 +1,5 @@
 import json
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from langchain_core.documents import Document
 from src.rag.build_rag_system import (
@@ -13,6 +13,7 @@ from src.rag.build_rag_system import (
     process_notion_wiki_data,
     process_trading_data,
 )
+from src.rag.local_vector_store import LocalVectorStore
 
 
 def test_process_list_items():
@@ -116,13 +117,12 @@ def test_process_trading_data():
 
 def test_create_vector_stores_and_retrievers():
     with (
-        patch("src.rag.build_rag_system.HuggingFaceEmbeddings"),
-        patch("src.rag.build_rag_system.Chroma") as mock_chroma,
-        patch("src.rag.build_rag_system.EnsembleRetriever") as mock_ensemble,
+        patch("src.rag.build_rag_system.HuggingFaceEmbeddings") as mock_embeddings,
     ):
-        mock_vs = MagicMock()
-        mock_chroma.from_documents.return_value = mock_vs
-        mock_ensemble.return_value = MagicMock()
+        mock_embeddings.return_value.embed_documents.side_effect = lambda texts: [
+            [float(index + 1), 1.0] for index, _ in enumerate(texts)
+        ]
+        mock_embeddings.return_value.embed_query.return_value = [1.0, 1.0]
 
         notion_docs = [
             Document(page_content="Notion doc ```python\nx = 1\n```", metadata={"source": "notion"})
@@ -133,6 +133,7 @@ def test_create_vector_stores_and_retrievers():
         assert notion_vs is not None
         assert trading_vs is not None
         assert code_vs is not None
+        assert isinstance(notion_vs, LocalVectorStore)
 
         retriever = create_combined_retriever(notion_vs, trading_vs, code_vs)
         assert retriever is not None
@@ -143,3 +144,24 @@ def test_create_vector_stores_and_retrievers():
 
 def test_create_combined_retriever_empty():
     assert create_combined_retriever(None, None, None) is None
+
+
+def test_local_vector_store_ranks_documents_by_cosine_similarity():
+    class FakeEmbeddings:
+        def embed_documents(self, texts):
+            return [[1.0, 0.0] if text == "rules" else [0.0, 1.0] for text in texts]
+
+        def embed_query(self, query):
+            return [1.0, 0.0] if query == "rules" else [0.0, 1.0]
+
+    store = LocalVectorStore.from_texts(
+        ["rules", "trades"],
+        FakeEmbeddings(),
+        metadatas=[{"source": "rules.md"}, {"source": "trades.md"}],
+    )
+
+    matches = store.similarity_search("rules", k=1)
+
+    assert len(matches) == 1
+    assert matches[0].page_content == "rules"
+    assert matches[0].metadata["source"] == "rules.md"
