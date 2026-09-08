@@ -95,10 +95,14 @@ class _FakeRagChain:
         return {
             "result": f"Fixture answer for: {query}",
             "source_documents": [
-                type("FixtureDocument", (), {
-                    "metadata": {"source": "fixture/round-1.md"},
-                    "page_content": "Fixture source content for deterministic smoke tests.",
-                })()
+                type(
+                    "FixtureDocument",
+                    (),
+                    {
+                        "metadata": {"source": "fixture/round-1.md"},
+                        "page_content": "Fixture source content for deterministic smoke tests.",
+                    },
+                )()
             ],
         }
 
