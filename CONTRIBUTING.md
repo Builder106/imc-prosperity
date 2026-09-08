@@ -37,17 +37,14 @@ must be mocked; the suite runs offline.
 
 ## Project guardrails
 
-- **Pin dependencies only where a version is known to break.** `requirements.txt`
+- **Keep the dependency graph reproducible.** Update `pyproject.toml` and
+  `uv.lock` together. A full freeze broke the Streamlit Cloud install once;
+  prefer direct requirements and let the resolver select compatible wheels.
 
-  pins the langchain 0.2.x stack, a recent OpenTelemetry, and `protobuf<7`;
-  everything else is intentionally unpinned so the deploy resolver can pick
-  wheels for its Python version. A full freeze broke the Streamlit Cloud install
-  once — don't reintroduce blanket pins.
-
-- **The vector stores use local Chroma persistence** under
-  `data/vectordb_persisted/`. The application builds them during startup and
-  caches the assembled retriever with `@st.cache_resource`. Keep the target
-  deployment's filesystem and SQLite support in mind when changing this path.
+- **The vector stores use an in-process cosine-similarity implementation.** The
+  application builds them in memory during startup and caches the assembled
+  retriever with `@st.cache_resource`. Do not introduce a networked vector
+  database without a separate security review.
 
 - **LLM calls go through `GroqRagChain`** (`src/rag/groq_llm.py`), behind the
 

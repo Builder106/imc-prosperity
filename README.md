@@ -34,7 +34,7 @@ This project combines documentation wikis, trading logs, and code examples into 
 ## Features
 
 - **Interactive chat interface**: Conversational web UI with chat history, verified source documents, and example prompts
-- **Multi-source search**: Searches across three knowledge stores (rules wiki, historical trading data, and code examples)
+- **Multi-source search**: Searches across three in-process knowledge stores (rules wiki, historical trading data, and code examples)
 - **Fast cloud inference**: Powered by the Groq API (`llama-3.3-70b-versatile` by default)
 - **Comprehensive knowledge base**: Includes competition guides, community discussions, and processed market datasets
 - **Trading log analyzer**: Summarizes and extracts actionable insights from competition logs
@@ -47,7 +47,7 @@ sequenceDiagram
     participant UI as Streamlit UI (app.py)
     participant RAG as GroqRagChain
     participant R as Ensemble Retriever
-    participant VS as Chroma vector stores
+    participant VS as local in-process vector stores
     participant Groq as Groq API
     User->>UI: Ask a question
     UI->>RAG: invoke({ query })
@@ -61,9 +61,9 @@ sequenceDiagram
     UI-->>User: rendered answer with sources
 ```
 
-The vector stores are built at startup and persisted under
-`data/vectordb_persisted/`. Streamlit caches the assembled retriever for the
-session, but a cold start still processes and embeds the corpus as needed.
+The vector stores are built in memory at startup. Streamlit caches the assembled
+retriever for the session, but a cold start still processes and embeds the
+corpus as needed.
 
 ## Project structure
 

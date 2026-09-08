@@ -1,12 +1,12 @@
 # TradeTell (IMC Prosperity): RAG Evaluation & Decoupling Architecture Roadmap
 
-This document outlines the engineering plan for upgrading **TradeTell** (the AI assistant for IMC Prosperity) from a Streamlit application with disk-persisted Chroma stores to a decoupled RAG application with continuous retrieval and generation evaluation.
+This document outlines the engineering plan for upgrading **TradeTell** (the AI assistant for IMC Prosperity) from a Streamlit application with in-process vector stores to a decoupled RAG application with continuous retrieval and generation evaluation.
 
 ---
 
 ## 1. Objectives
 
-1. **Finish persistent indexing:** Add offline indexing and loading of existing vector store collections under `data/vectordb_persisted/` so cold starts do not rebuild the corpus unnecessarily.
+1. **Finish persistent indexing:** Add offline indexing and loading of an audited local index so cold starts do not rebuild the corpus unnecessarily.
 2. **Decouple Frontend & Backend:**Transition from a unified Streamlit application to a dedicated**FastAPI**REST/SSE backend and a**React/Vite** frontend.
 3. **Automated RAG Evaluation:** Establish continuous quality benchmarks measuring Retrieval Context Precision, Answer Faithfulness, and Groundedness.
 
@@ -14,13 +14,13 @@ This document outlines the engineering plan for upgrading **TradeTell** (the AI 
 
 ## 2. Phase 1: Persistent Vector Indexing
 
-`src/rag/build_rag_system.py` processes raw Markdown files, Discord exports, and code samples into disk-persisted Chroma vector stores at runtime startup.
+`src/rag/build_rag_system.py` processes raw Markdown files, Discord exports, and code samples into in-process vector stores at runtime startup.
 
 ### Changes
 
-- Chroma initialization already writes the stores below `data/vectordb_persisted/`.
+- The local vector store currently builds its index in memory; no database service or persistent database files are required.
 - Implement a CLI indexing script (`python -m src.rag.index_corpus`) to pre-build vector collections offline.
-- Modify runtime initialization to attempt loading existing disk collections before attempting re-indexing.
+- If persistent indexing is added later, use a reviewed file format and keep loading local and read-only.
 
 ---
 

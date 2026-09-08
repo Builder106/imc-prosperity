@@ -1,25 +1,13 @@
 # Security notes
 
-## ChromaDB dependency exception
+## Dependency security boundary
 
-The application uses ChromaDB 1.5.9 through `langchain-chroma` for three local
-vector stores. GitHub currently reports four open ChromaDB advisories, with no
-patched version available:
+The application does not install or import ChromaDB. The three local retrieval
+stores use the in-process implementation in `src/rag/local_vector_store.py`,
+which performs cosine similarity over embedding vectors for the current
+session. This removes the four previously open ChromaDB advisories from the
+dependency graph instead of suppressing them.
 
-- [CVE-2026-45829](https://github.com/advisories/GHSA-f4j7-r4q5-qw2c)
-- [CVE-2026-45830](https://github.com/advisories/GHSA-2wm9-hf6c-p5cr)
-- [CVE-2026-45831](https://github.com/advisories/GHSA-xph7-9rjv-w5fr)
-- [CVE-2026-45833](https://github.com/advisories/GHSA-36p7-vc44-83pf)
-
-The audit tool reports CVE-2026-45829 under the identifier `PYSEC-2026-311`.
-
-The CI dependency audit temporarily ignores only these findings. The exception
-assumes that Chroma remains embedded in the application. The application does
-not start a Chroma HTTP server, expose Chroma REST endpoints, accept
-user-controlled collection or model configuration, or enable Hugging Face
-remote code execution.
-
-This exception does not mean that ChromaDB is unused or safe. Remove it when a
-patched release is available, or when the application no longer needs Chroma.
-Reassess it before introducing a networked Chroma service or loading
-user-controlled embedding models.
+The CI dependency audit has no Chroma-specific exceptions. Do not reintroduce
+ChromaDB or a networked vector database without reviewing authentication,
+tenant isolation, collection access, and code-execution behavior.

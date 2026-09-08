@@ -4,6 +4,10 @@
 > happen — retrospectives need this raw material to land. Reverse-chronological;
 > one paragraph max per entry.
 
+## 2026-09-08: Removed vulnerable ChromaDB dependency #security
+
+GitHub reported four open ChromaDB advisories with no patched release. Removed `chromadb`, `langchain-chroma`, and the SQLite compatibility shim, and replaced the three local stores with an in-process cosine-similarity store. CI now runs `pip-audit` without Chroma-specific ignores; persistent indexing remains a future, separately reviewed decision.
+
 ## 2026-09-08: Deterministic Streamlit smoke boundary #decision
 
 The blocking smoke path sets `TRADETELL_TEST_MODE=1` and uses an in-process fake RAG chain, so CI exercises the rendered question-and-source flow without Groq, Hugging Face, Chroma, or shared deployment services. The full demo remains separate and non-blocking; the smoke test is intentionally small and deterministic.
