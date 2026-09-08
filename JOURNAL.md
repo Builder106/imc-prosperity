@@ -4,6 +4,10 @@
 > happen — retrospectives need this raw material to land. Reverse-chronological;
 > one paragraph max per entry.
 
+## 2026-09-08: Deterministic Streamlit smoke boundary #decision
+
+The blocking smoke path sets `TRADETELL_TEST_MODE=1` and uses an in-process fake RAG chain, so CI exercises the rendered question-and-source flow without Groq, Hugging Face, Chroma, or shared deployment services. The full demo remains separate and non-blocking; the smoke test is intentionally small and deterministic.
+
 ## 2026-08-29: ChromaDB advisory review #security
 
 The app uses ChromaDB 1.5.9 through LangChain for three local persistent stores. GitHub reports four unpatched advisories. The app does not start a Chroma HTTP server or enable Hugging Face remote code execution, so CI records a temporary, exact-ID exception while Chroma remains in use. Revisit the exception when an upstream fix is available.
