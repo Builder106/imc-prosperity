@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Any
 
 from dotenv import load_dotenv
-from langchain_chroma import Chroma
 from langchain_classic.retrievers import EnsembleRetriever
 from langchain_core.documents import Document
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -13,6 +12,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from .discord_data import load_discord_exports
 from .groq_llm import GroqRagChain
+from .local_vector_store import LocalVectorStore
 from .model_config import (
     get_embedding_model_name,
     get_groq_api_key,
@@ -35,8 +35,6 @@ PROJECT_ROOT = SCRIPT_DIR.parent.parent  # Goes up two levels to the project roo
 NOTION_WIKI_DIR = PROJECT_ROOT / "data" / "prosperity_wiki"
 TRADING_DATA_DIR = PROJECT_ROOT / "data" / "trading_data"
 DISCORD_DATA_DIR = PROJECT_ROOT / "data" / "discord" / "raw"
-PERSIST_DIR = PROJECT_ROOT / "data" / "vectordb_persisted"
-VECTOR_DB_DIR = PERSIST_DIR
 
 
 def process_notion_wiki_data(wiki_dir=NOTION_WIKI_DIR):
@@ -401,11 +399,9 @@ def create_vector_stores(notion_documents, trading_documents):
                 print(
                     f"[DEBUG build_rag_system.py] Creating notion vector store with {len(filtered_notion_docs)} documents"
                 )
-                # Create notion vector store
-                notion_vectorstore = Chroma.from_documents(
+                notion_vectorstore = LocalVectorStore.from_documents(
                     documents=filtered_notion_docs,
                     embedding=embeddings,
-                    persist_directory=str(PERSIST_DIR / "notion"),
                 )
 
                 # Extract code blocks for specialized code search
@@ -416,10 +412,9 @@ def create_vector_stores(notion_documents, trading_documents):
                     print(
                         f"[DEBUG build_rag_system.py] Creating specialized code vector store with {len(filtered_code_blocks)} code blocks"
                     )
-                    code_vectorstore = Chroma.from_documents(
+                    code_vectorstore = LocalVectorStore.from_documents(
                         documents=filtered_code_blocks,
                         embedding=embeddings,
-                        persist_directory=str(PERSIST_DIR / "code"),
                     )
         except (OSError, ValueError, TypeError, AttributeError, RuntimeError) as e:
             print(f"Error processing notion documents: {e}")
@@ -441,11 +436,9 @@ def create_vector_stores(notion_documents, trading_documents):
                 print(
                     f"[DEBUG build_rag_system.py] Creating trading vector store with {len(filtered_trading_docs)} documents"
                 )
-                # Create trading data vector store
-                trading_vectorstore = Chroma.from_documents(
+                trading_vectorstore = LocalVectorStore.from_documents(
                     documents=filtered_trading_docs,
                     embedding=embeddings,
-                    persist_directory=str(PERSIST_DIR / "trading"),
                 )
         except (OSError, ValueError, TypeError, AttributeError, RuntimeError) as e:
             print(f"Error processing trading documents: {e}")
@@ -454,9 +447,6 @@ def create_vector_stores(notion_documents, trading_documents):
             build_errors.append(f"trading: {e!r}\n{traceback.format_exc()}")
     else:
         print("No trading documents to process")
-
-    # Documents are automatically persisted in Chroma 0.4.x+
-    # No need to call persist() method anymore
 
     print("Vector stores created")
     # If we had documents but built nothing, surface the captured cause instead

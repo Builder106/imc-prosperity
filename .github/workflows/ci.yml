@@ -64,16 +64,7 @@ jobs:
         run: uv sync --frozen --group dev
 
       - name: Python dependency audit
-        # Temporary exception: GitHub reports no patched ChromaDB release. Chroma
-        # runs in-process here; the app does not expose a Chroma HTTP server or
-        # accept user-controlled collection or model configuration. Revisit this
-        # exception when a patched release is available.
-        run: >-
-          uv run --with pip-audit pip-audit
-          --ignore-vuln PYSEC-2026-311
-          --ignore-vuln CVE-2026-45830
-          --ignore-vuln CVE-2026-45831
-          --ignore-vuln CVE-2026-45833
+        run: uv run --with pip-audit pip-audit
 
       - name: License compliance check
         run: uv run --with pip-licenses pip-licenses --fail-on="AGPL;GPL"
