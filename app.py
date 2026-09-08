@@ -77,6 +77,8 @@ EXAMPLE_PROMPTS = [
 # RAG system (built once, cached for the session)
 @st.cache_resource(show_spinner="Loading knowledge base and building the RAG system…")
 def initialize_rag_system():
+    if os.environ.get("TRADETELL_TEST_MODE") == "1":
+        return _fake_rag_chain()
     notion_documents = process_notion_wiki_data()
     notion_documents.extend(process_discord_data())
     trading_documents = process_trading_data()
@@ -85,6 +87,24 @@ def initialize_rag_system():
     )
     retriever = create_combined_retriever(notion_vectorstore, trading_vectorstore, code_vectorstore)
     return create_rag_chain(retriever)
+
+
+class _FakeRagChain:
+    def invoke(self, inputs):
+        query = inputs["query"]
+        return {
+            "result": f"Fixture answer for: {query}",
+            "source_documents": [
+                type("FixtureDocument", (), {
+                    "metadata": {"source": "fixture/round-1.md"},
+                    "page_content": "Fixture source content for deterministic smoke tests.",
+                })()
+            ],
+        }
+
+
+def _fake_rag_chain():
+    return _FakeRagChain()
 
 
 def render_sources(source_documents):
@@ -136,23 +156,24 @@ st.markdown(
 # On Streamlit Cloud, secrets aren't automatically in os.environ; bridge the
 # config keys across so the os.getenv-based model config picks them up. Locally
 # this no-ops (no secrets file) and .env is used instead.
-try:
-    # HF_TOKEN is read by huggingface-hub when sentence-transformers pulls the
-    # embedding model; bridging it authenticates the download (higher rate limit,
-    # no "unauthenticated requests to the HF Hub" warning).
-    for _key in (
-        "GROQ_API_KEY",
-        "LLM_MODEL",
-        "LLM_TEMPERATURE",
-        "GROQ_TIMEOUT_SECONDS",
-        "EMBEDDING_MODEL",
-        "HF_TOKEN",
-    ):
-        if _key in st.secrets:
-            os.environ.setdefault(_key, str(st.secrets[_key]))
-except ImportError:
-    # st.secrets may not be available in all contexts
-    pass
+if os.environ.get("TRADETELL_TEST_MODE") != "1":
+    try:
+        # HF_TOKEN is read by huggingface-hub when sentence-transformers pulls the
+        # embedding model; bridging it authenticates the download (higher rate limit,
+        # no "unauthenticated requests to the HF Hub" warning).
+        for _key in (
+            "GROQ_API_KEY",
+            "LLM_MODEL",
+            "LLM_TEMPERATURE",
+            "GROQ_TIMEOUT_SECONDS",
+            "EMBEDDING_MODEL",
+            "HF_TOKEN",
+        ):
+            if _key in st.secrets:
+                os.environ.setdefault(_key, str(st.secrets[_key]))
+    except (ImportError, FileNotFoundError):
+        # st.secrets may not be available in all contexts
+        pass
 
 try:
     rag_chain = initialize_rag_system()

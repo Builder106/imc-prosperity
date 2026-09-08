@@ -87,5 +87,9 @@ jobs:
       - name: Type check (pyright)
         run: uv run --with pyright pyright
 
-      - name: Run tests
+      - name: Run deterministic tests without external APIs
+        env:
+          TRADETELL_TEST_MODE: "1"
+          HF_HUB_OFFLINE: "1"
+          TRANSFORMERS_OFFLINE: "1"
         run: uv run --frozen pytest
