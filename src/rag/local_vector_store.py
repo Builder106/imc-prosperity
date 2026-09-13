@@ -1,8 +1,8 @@
 from collections.abc import Iterable, Sequence
-from typing import Any
 
 import numpy as np
 from langchain_core.documents import Document
+from langchain_core.embeddings import Embeddings
 from langchain_core.vectorstores import VectorStore
 
 
@@ -10,7 +10,7 @@ class LocalVectorStore(VectorStore):
     """Small in-process vector store for the application's local corpus."""
 
     def __init__(
-        self, documents: Sequence[Document], vectors: Sequence[Sequence[float]], embedding: Any
+        self, documents: Sequence[Document], vectors: Sequence[Sequence[float]], embedding: Embeddings
     ):
         self._documents = list(documents)
         self._vectors = np.asarray(vectors, dtype=np.float32)
@@ -22,15 +22,15 @@ class LocalVectorStore(VectorStore):
             )
 
     @property
-    def embeddings(self) -> Any:
+    def embeddings(self) -> Embeddings:
         return self._embedding
 
     @classmethod
     def from_documents(
         cls,
         documents: Iterable[Document],
-        embedding: Any,
-        **_: Any,
+        embedding: Embeddings,
+        **_: object,
     ) -> "LocalVectorStore":
         materialized_documents = list(documents)
         if not materialized_documents:
@@ -45,9 +45,9 @@ class LocalVectorStore(VectorStore):
     def from_texts(
         cls,
         texts: Iterable[str],
-        embedding: Any,
-        metadatas: Sequence[dict[str, Any]] | None = None,
-        **_: Any,
+        embedding: Embeddings,
+        metadatas: Sequence[dict[str, object]] | None = None,
+        **_: object,
     ) -> "LocalVectorStore":
         materialized_texts = list(texts)
         materialized_metadatas = list(metadatas or [{} for _ in materialized_texts])
@@ -60,7 +60,7 @@ class LocalVectorStore(VectorStore):
         ]
         return cls.from_documents(documents, embedding)
 
-    def similarity_search(self, query: str, k: int = 4, **kwargs: Any) -> list[Document]:
+    def similarity_search(self, query: str, k: int = 4, **kwargs: object) -> list[Document]:
         del kwargs
         return [document for document, _ in self.similarity_search_with_score(query, k=k)]
 
@@ -68,7 +68,7 @@ class LocalVectorStore(VectorStore):
         self,
         query: str,
         k: int = 4,
-        **kwargs: Any,
+        **kwargs: object,
     ) -> list[tuple[Document, float]]:
         del kwargs
         if k <= 0 or not self._documents:

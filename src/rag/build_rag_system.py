@@ -1,8 +1,8 @@
 import json
 import os
 import re
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any
 
 from dotenv import load_dotenv
 from langchain_classic.retrievers import EnsembleRetriever
@@ -380,7 +380,9 @@ def create_vector_stores(notion_documents, trading_documents):
                 cleaned[key] = str(value)
         return cleaned
 
-    def filter_complex_metadata(doc_or_docs: Any) -> Document:
+    def filter_complex_metadata(
+        doc_or_docs: Document | Sequence[Document] | str,
+    ) -> Document:
         d = ensure_document(doc_or_docs)
         if d is None:
             return Document(page_content="", metadata={})
