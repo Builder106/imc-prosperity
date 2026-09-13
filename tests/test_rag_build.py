@@ -2,6 +2,7 @@ import json
 from unittest.mock import patch
 
 from langchain_core.documents import Document
+from langchain_core.embeddings import Embeddings
 from src.rag.build_rag_system import (
     create_combined_retriever,
     create_rag_chain,
@@ -147,12 +148,12 @@ def test_create_combined_retriever_empty():
 
 
 def test_local_vector_store_ranks_documents_by_cosine_similarity():
-    class FakeEmbeddings:
-        def embed_documents(self, texts):
+    class FakeEmbeddings(Embeddings):
+        def embed_documents(self, texts: list[str]) -> list[list[float]]:
             return [[1.0, 0.0] if text == "rules" else [0.0, 1.0] for text in texts]
 
-        def embed_query(self, query):
-            return [1.0, 0.0] if query == "rules" else [0.0, 1.0]
+        def embed_query(self, text: str) -> list[float]:
+            return [1.0, 0.0] if text == "rules" else [0.0, 1.0]
 
     store = LocalVectorStore.from_texts(
         ["rules", "trades"],
