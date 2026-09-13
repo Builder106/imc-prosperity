@@ -10,7 +10,10 @@ class LocalVectorStore(VectorStore):
     """Small in-process vector store for the application's local corpus."""
 
     def __init__(
-        self, documents: Sequence[Document], vectors: Sequence[Sequence[float]], embedding: Embeddings
+        self,
+        documents: Sequence[Document],
+        vectors: Sequence[Sequence[float]],
+        embedding: Embeddings,
     ):
         self._documents = list(documents)
         self._vectors = np.asarray(vectors, dtype=np.float32)
