@@ -1,21 +1,31 @@
-# IMC Prosperity Roadmap
+# IMC Prosperity roadmap
 
-Trading algorithmic strategy and simulation roadmap.
+TradeTell helps competitors study the rules, inspect historical data, and build
+trading strategies. The next release adds a repeatable way to measure both
+retrieval quality and strategy outcomes.
 
-## v1.1 — RAG Evaluation & Strategy Decoupling
+## v1.1: Strategy evaluation loop
 
-- **Strategy Decoupling**: Modular strategy architecture per [`docs/specs/rag-eval-and-decoupling-plan.md`](docs/specs/rag-eval-and-decoupling-plan.md).
-- **Backtesting Harness**: Deterministic historical market data replay with order fill modeling.
+- Replay the built-in Round 1 and Round 2 strategies against the bundled
+  historical order books and public trades.
+- Report P&L, drawdown, fills, traded volume, and order-limit rejections for
+  each day.
+- Measure source recall at k and mean reciprocal rank using the same local
+  retriever and corpus as the app.
+- Keep the replay assumptions visible. The historical data does not include
+  queue priority, conversions, or Round 2 market-access bidding. The retrieval
+  benchmark does not call the LLM.
 
-## v1.2 — Multi-Asset Arbitrage & Machine Learning Signals
+## v1.2: Strategy comparison
 
-- **Volatility Surface Modeling**: Real-time implied volatility fitting and ETF basket arbitrage strategies.
-- **Risk Ceilings & Position Limits**: Hard automated safeguards on inventory drawdown.
+- Compare candidate strategies on held-out days and rounds.
+- Show the retrieved sources and replay results beside each strategy answer.
+- Add a Streamlit comparison view if the command-line results prove useful.
 
 ## Out of Scope
 
-- Real-money exchange execution (competition / simulation only)
-- Non-deterministic random seed backtests
+- Real-money exchange execution
+- Unseeded or non-repeatable simulation results
 
 ---
-For technical specifications, see [`docs/specs/`](docs/specs/).
+For the implementation plan, see [`docs/specs/`](docs/specs/).

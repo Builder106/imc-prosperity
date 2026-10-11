@@ -4,6 +4,14 @@
 > happen — retrospectives need this raw material to land. Reverse-chronological;
 > one paragraph max per entry.
 
+## 2026-10-11: Rank retrieval by relevance across corpora #decision
+
+The first retrieval benchmark scored 0.0 recall@5. Weighted rank fusion gave the trading and code corpora enough weight that no wiki page could reach the top five, while wiki-only retrieval found 7 of 10 labeled sources. The three stores share one embedding model, so the combined retriever now merges their vectors and ranks by cosine similarity. Recall@5 rose to 0.7 and MRR to 0.4367, the same as wiki-only retrieval. The three remaining misses are wiki-ranking problems for the next change. Parsing, fill, and position-limit tests now run without downloading a model, so the suite can gate CI.
+
+## 2026-10-11: Measure retrieval and strategy results before splitting the app #decision
+
+Added a deterministic replay for the bundled Round 1 and Round 2 data and a source-recall benchmark that uses the app's local retriever. The replay reports its fill assumptions because the CSVs do not include queue priority. The live embedding benchmark stays out of CI because it may need a model download; a future CI gate needs focused tests for parsing, fills, and position limits. Persistent indexing and the API/frontend split remain deferred until startup or deployment measurements call for them.
+
 ## 2026-09-08: Removed vulnerable ChromaDB dependency #security
 
 GitHub reported four open ChromaDB advisories with no patched release. Removed `chromadb`, `langchain-chroma`, and the SQLite compatibility shim, and replaced the three local stores with an in-process cosine-similarity store. CI now runs `pip-audit` without Chroma-specific ignores; persistent indexing remains a future, separately reviewed decision.

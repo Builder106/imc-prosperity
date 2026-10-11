@@ -46,7 +46,7 @@ sequenceDiagram
     actor User
     participant UI as Streamlit UI (app.py)
     participant RAG as GroqRagChain
-    participant R as Ensemble Retriever
+    participant R as Combined Retriever
     participant VS as local in-process vector stores
     participant Groq as Groq API
     User->>UI: Ask a question
@@ -132,6 +132,30 @@ python src/utils/summarize_trading_logs.py
 ```
 
 Follow the prompts to input a log file path and receive a detailed summary.
+
+### Evaluating strategies
+
+Replay a built-in strategy on the bundled historical market data:
+
+```bash
+uv run python -m src.evaluation.strategy_replay --round 1 --match-trades worse
+```
+
+Use `--round 2` or pass `--day -1` to select one day. The report includes
+daily P&L, drawdown, fills, inventory, and rejected orders. Queue priority,
+conversions, and Round 2 market-access bidding are not modeled. See the
+[evaluation plan](docs/specs/rag-eval-and-decoupling-plan.md) for the fill rules.
+
+Measure retrieval against the app's local corpus and embedding model:
+
+```bash
+uv run python -m src.rag.retrieval_evaluation --k 5
+```
+
+This reports source recall at k and mean reciprocal rank without calling the
+Groq API. The first run may download the configured Hugging Face model.
+Add `--compare-corpora` to score the wiki, trading, and code stores separately
+from the combined retriever.
 
 ## Development
 
