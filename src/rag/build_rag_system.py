@@ -4,7 +4,6 @@ import re
 from collections.abc import Sequence
 from pathlib import Path
 
-from dotenv import load_dotenv
 from langchain_classic.retrievers import EnsembleRetriever
 from langchain_core.documents import Document
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -23,9 +22,6 @@ from .model_config import (
     get_max_context_chars,
 )
 from .process_raw_trading_data import discover_rounds, process_round_data
-
-# Load environment variables
-load_dotenv()
 
 # Directory settings
 # SCRIPT_DIR should be defined before it's used for other constants

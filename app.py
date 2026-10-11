@@ -1,6 +1,7 @@
 import os
 
 import streamlit as st
+from dotenv import load_dotenv
 from src.rag.build_rag_system import (
     create_combined_retriever,
     create_rag_chain,
@@ -9,6 +10,8 @@ from src.rag.build_rag_system import (
     process_notion_wiki_data,
     process_trading_data,
 )
+
+load_dotenv()
 
 # Page configuration
 # Custom browser-tab favicon: the candlestick logo (assets/logo.png). Resolved

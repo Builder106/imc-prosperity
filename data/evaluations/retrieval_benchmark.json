@@ -1,0 +1,52 @@
+[
+  {
+    "id": "trader-run",
+    "query": "What method does a Prosperity trader implement to receive the market state and return orders?",
+    "relevant_sources": ["writing_an_algorithm_in_python.md"]
+  },
+  {
+    "id": "position-limits",
+    "query": "Which products and product limits are introduced in Round 1?",
+    "relevant_sources": ["round_1_-_“trading_groundwork”.md"]
+  },
+  {
+    "id": "round-one",
+    "query": "What profit target must teams reach during Round 1, and by when?",
+    "relevant_sources": ["round_1_-_“trading_groundwork”.md"]
+  },
+  {
+    "id": "round-two",
+    "query": "How does the Growing Your Outpost round change the competition?",
+    "relevant_sources": ["round_2_-_“growing_your_outpost”.md"]
+  },
+  {
+    "id": "tutorial-round",
+    "query": "What can participants practice in the tutorial simulator round?",
+    "relevant_sources": ["tutorial_round_-_“simulator_practice”.md"]
+  },
+  {
+    "id": "mechanics",
+    "query": "How are the manual trading challenge and algorithmic trading challenge handled in each round?",
+    "relevant_sources": ["game_mechanics_overview.md"]
+  },
+  {
+    "id": "glossary",
+    "query": "What terminology should a new Prosperity trader know?",
+    "relevant_sources": ["trading_glossary.md"]
+  },
+  {
+    "id": "programming-resources",
+    "query": "Where can participants find programming references and development resources?",
+    "relevant_sources": ["programming_resources.md"]
+  },
+  {
+    "id": "prosperity-four",
+    "query": "What is IMC Prosperity 4 and what does its wiki cover?",
+    "relevant_sources": ["prosperity_4_wiki.md"]
+  },
+  {
+    "id": "faq",
+    "query": "What signup and team-changing deadlines apply to Prosperity?",
+    "relevant_sources": ["faq.md"]
+  }
+]
