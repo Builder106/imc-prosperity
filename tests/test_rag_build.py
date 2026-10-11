@@ -1,6 +1,7 @@
 import json
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
+import pytest
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 from src.rag.build_rag_system import (
@@ -145,6 +146,43 @@ def test_create_vector_stores_and_retrievers():
 
 def test_create_combined_retriever_empty():
     assert create_combined_retriever(None, None, None) is None
+
+
+def test_combined_retriever_ranks_by_relevance_across_all_corpora():
+    embedding = Mock(spec=Embeddings)
+    wiki = LocalVectorStore(
+        [Document(page_content="rules", metadata={"source": "rules.md"})], [[1, 0]], embedding
+    )
+    trading = LocalVectorStore(
+        [
+            Document(page_content=f"trade {i}", metadata={"source": f"trades-{i}.csv"})
+            for i in range(20)
+        ],
+        [[0, 1] for _ in range(20)],
+        embedding,
+    )
+    code = LocalVectorStore(
+        [Document(page_content="code", metadata={"source": "code.py"})], [[-1, 0]], embedding
+    )
+    retriever = create_combined_retriever(wiki, trading, code)
+    assert retriever is not None
+
+    embedding.embed_query.return_value = [1, 0]
+    assert retriever.invoke("rules")[0].metadata["source"] == "rules.md"
+    embedding.embed_query.return_value = [0, 1]
+    assert retriever.invoke("trades")[0].metadata["source"] == "trades-0.csv"
+    embedding.embed_query.return_value = [-1, 0]
+    assert retriever.invoke("code")[0].metadata["source"] == "code.py"
+    embedding.embed_documents.assert_not_called()
+
+
+def test_combining_stores_rejects_incompatible_embedding_spaces():
+    first = LocalVectorStore([Document(page_content="first")], [[1, 0]], Mock(spec=Embeddings))
+    second = LocalVectorStore([Document(page_content="second")], [[1, 0]], Mock(spec=Embeddings))
+    with pytest.raises(ValueError, match="same embedding instance"):
+        LocalVectorStore.combine([first, second])
+    with pytest.raises(ValueError, match="At least one vector store"):
+        LocalVectorStore.combine([])
 
 
 def test_local_vector_store_ranks_documents_by_cosine_similarity():

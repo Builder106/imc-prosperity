@@ -29,6 +29,17 @@ class LocalVectorStore(VectorStore):
         return self._embedding
 
     @classmethod
+    def combine(cls, stores: Sequence["LocalVectorStore"]) -> "LocalVectorStore":
+        if not stores:
+            raise ValueError("At least one vector store is required")
+        embedding = stores[0].embeddings
+        if any(store.embeddings is not embedding for store in stores):
+            raise ValueError("Combined stores must use the same embedding instance")
+        documents = [document for store in stores for document in store._documents]
+        vectors = np.concatenate([store._vectors for store in stores]).tolist()
+        return cls(documents, vectors, embedding)
+
+    @classmethod
     def from_documents(
         cls,
         documents: Iterable[Document],

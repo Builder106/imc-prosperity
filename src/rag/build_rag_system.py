@@ -4,7 +4,6 @@ import re
 from collections.abc import Sequence
 from pathlib import Path
 
-from langchain_classic.retrievers import EnsembleRetriever
 from langchain_core.documents import Document
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -461,42 +460,26 @@ def create_vector_stores(notion_documents, trading_documents):
     return notion_vectorstore, trading_vectorstore, code_vectorstore
 
 
-def create_combined_retriever(notion_vectorstore, trading_vectorstore, code_vectorstore=None):
+def create_combined_retriever(
+    notion_vectorstore: LocalVectorStore | None,
+    trading_vectorstore: LocalVectorStore | None,
+    code_vectorstore: LocalVectorStore | None = None,
+):
     print("[DEBUG build_rag_system.py] Creating combined retriever...")
     print(f"[DEBUG build_rag_system.py] Notion vectorstore is None: {notion_vectorstore is None}")
     print(f"[DEBUG build_rag_system.py] Trading vectorstore is None: {trading_vectorstore is None}")
     print(f"[DEBUG build_rag_system.py] Code vectorstore is None: {code_vectorstore is None}")
 
-    # Handle case where one or both vector stores might be None
-    retrievers = []
-    weights = []
-
-    if notion_vectorstore:
-        notion_retriever = notion_vectorstore.as_retriever(search_kwargs={"k": 10})
-        retrievers.append(notion_retriever)
-        weights.append(0.2)
-
-    if trading_vectorstore:
-        trading_retriever = trading_vectorstore.as_retriever(search_kwargs={"k": 15})
-        retrievers.append(trading_retriever)
-        weights.append(0.3)
-
-    if code_vectorstore:
-        code_retriever = code_vectorstore.as_retriever(search_kwargs={"k": 12})
-        retrievers.append(code_retriever)
-        weights.append(0.5)
-
-    # Normalize weights if we have at least one retriever
-    if retrievers:
-        total_weight = sum(weights)
-        weights = [w / total_weight for w in weights]
-
-        # Create an ensemble retriever with weights
-        ensemble_retriever = EnsembleRetriever(retrievers=retrievers, weights=weights)
-        return ensemble_retriever
-    else:
-        print("Warning: No retrievers available. Cannot create ensemble retriever.")
+    stores = [
+        store
+        for store in (notion_vectorstore, trading_vectorstore, code_vectorstore)
+        if store is not None
+    ]
+    if not stores:
+        print("Warning: No retrievers available. Cannot create combined retriever.")
         return None
+    # All stores share one embedding model, so their cosine scores are comparable.
+    return LocalVectorStore.combine(stores).as_retriever(search_kwargs={"k": 15})
 
 
 def create_rag_chain(retriever):
