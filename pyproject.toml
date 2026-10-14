@@ -10,7 +10,7 @@ dependencies = [
     "langchain-text-splitters",
     "langchain-classic",
     "langchain-huggingface",
-    "protobuf<7",
+    "protobuf<8",
     "opentelemetry-api",
     "opentelemetry-sdk",
     "opentelemetry-proto",
