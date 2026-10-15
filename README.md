@@ -41,25 +41,9 @@ This project combines documentation wikis, trading logs, and code examples into 
 
 ## How it works
 
-```mermaid
-sequenceDiagram
-    actor User
-    participant UI as Streamlit UI (app.py)
-    participant RAG as GroqRagChain
-    participant R as Combined Retriever
-    participant VS as local in-process vector stores
-    participant Groq as Groq API
-    User->>UI: Ask a question
-    UI->>RAG: invoke({ query })
-    RAG->>R: retrieve(query)
-    R->>VS: similarity search (wiki | trading | code)
-    VS-->>R: top-k documents
-    R-->>RAG: ranked, weighted context
-    RAG->>Groq: prompt + context (llama-3.3-70b)
-    Groq-->>RAG: generated answer
-    RAG-->>UI: answer + source documents
-    UI-->>User: rendered answer with sources
-```
+![How a question becomes an answer with sources](assets/diagrams/rag-flow.png)
+
+Streamlit sends the question to GroqRagChain. Its combined retriever searches local wiki, trading, and code stores and returns weighted context. Groq generates the answer, which Streamlit shows with the source documents. [Editable HTML source](assets/diagrams/rag-flow.html).
 
 The vector stores are built in memory at startup. Streamlit caches the assembled
 retriever for the session, but a cold start still processes and embeds the

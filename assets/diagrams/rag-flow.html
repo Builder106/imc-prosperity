@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>From question to sourced answer</title>
+<style>body{margin:0;padding:24px;background:#F8FAFC;color:#10231F;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}main{max-width:960px;min-width:0;margin:0 auto}.figure-scroll{width:100%;overflow-x:auto}svg{display:block;width:100%;min-width:960px}@media print{.figure-scroll{overflow-x:visible}svg{min-width:0}}</style></head>
+<body><main><div class="figure-scroll"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 600" role="img" aria-labelledby="rag-flow-title rag-flow-desc">
+<title id="rag-flow-title">From question to sourced answer</title>
+<desc id="rag-flow-desc">Streamlit queries local context, then sends the grounded prompt to Groq. Dashed arrows are responses. The chain sends Groq the prompt plus weighted documents, then returns answer and sources.</desc>
+<defs><marker id="rag-flow-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path d="M1 1 L7 4 L1 7" fill="none" stroke="#047857" stroke-width="1.5"/></marker></defs>
+<rect width="960" height="600" fill="#FFFFFF"/>
+<text x="40" y="52" font-size="27" font-weight="700" fill="#10231F">From question to sourced answer</text>
+<text x="40" y="80" font-size="14" font-weight="400" fill="#475569">Streamlit queries local context, then sends the grounded prompt to Groq.</text>
+<line x1="40" y1="94" x2="920" y2="94" stroke="#CBD5E1"/>
+<path d="M164 244 H212" fill="none" stroke="#047857" stroke-width="1.8" marker-end="url(#rag-flow-arrow)"/>
+<path d="M370 244 H414" fill="none" stroke="#047857" stroke-width="1.8" marker-end="url(#rag-flow-arrow)"/>
+<path d="M576 244 H644" fill="none" stroke="#047857" stroke-width="1.8" marker-end="url(#rag-flow-arrow)"/>
+<path d="M496 308 V372" fill="none" stroke="#047857" stroke-width="1.8" marker-end="url(#rag-flow-arrow)"/>
+<path d="M594 418 H644" fill="none" stroke="#047857" stroke-width="1.8" marker-end="url(#rag-flow-arrow)"/>
+<path d="M644 466 H594" fill="none" stroke="#047857" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#rag-flow-arrow)"/>
+<path d="M550 372 V308" fill="none" stroke="#047857" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#rag-flow-arrow)"/>
+<path d="M644 292 H576" fill="none" stroke="#047857" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#rag-flow-arrow)"/>
+<path d="M414 292 H370" fill="none" stroke="#047857" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#rag-flow-arrow)"/>
+<path d="M212 292 H164" fill="none" stroke="#047857" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#rag-flow-arrow)"/>
+<text x="190" y="229" font-size="11" font-weight="500" fill="#475569" text-anchor="middle">ask</text>
+<text x="392" y="229" font-size="11" font-weight="500" fill="#475569" text-anchor="middle">invoke</text>
+<text x="610" y="229" font-size="11" font-weight="500" fill="#475569" text-anchor="middle">prompt</text>
+<text x="610" y="402" font-size="11" font-weight="500" fill="#475569" text-anchor="middle">search</text>
+<text x="615" y="480" font-size="11" font-weight="500" fill="#475569" text-anchor="middle">top-k</text>
+<rect x="40" y="212" width="124" height="96" rx="6" fill="#FFFFFF" stroke="#B8C5D2" stroke-width="1.2"/>
+<text x="54" y="239" font-size="15" font-weight="700" fill="#10231F">User</text>
+<text x="54" y="262" font-size="12" font-weight="400" fill="#10231F">Question</text>
+<text x="54" y="279" font-size="12" font-weight="400" fill="#10231F">Sourced answer</text>
+<rect x="212" y="212" width="158" height="96" rx="6" fill="#FFFFFF" stroke="#B8C5D2" stroke-width="1.2"/>
+<text x="226" y="239" font-size="15" font-weight="700" fill="#10231F">Streamlit UI</text>
+<text x="226" y="262" font-size="12" font-weight="400" fill="#10231F">app.py</text>
+<text x="226" y="279" font-size="12" font-weight="400" fill="#10231F">Renders sources</text>
+<rect x="414" y="212" width="162" height="96" rx="6" fill="#ECFDF5" stroke="#047857" stroke-width="1.2"/>
+<text x="428" y="239" font-size="15" font-weight="700" fill="#10231F">GroqRagChain</text>
+<text x="428" y="262" font-size="12" font-weight="400" fill="#10231F">invoke({query})</text>
+<text x="428" y="279" font-size="12" font-weight="400" fill="#10231F">Ranks context</text>
+<rect x="644" y="212" width="252" height="96" rx="6" fill="#F8FAFC" stroke="#B8C5D2" stroke-width="1.2"/>
+<text x="658" y="239" font-size="15" font-weight="700" fill="#10231F">Groq API</text>
+<text x="658" y="262" font-size="12" font-weight="400" fill="#10231F">llama-3.3-70b</text>
+<text x="658" y="279" font-size="12" font-weight="400" fill="#10231F">Generates answer</text>
+<rect x="414" y="372" width="180" height="120" rx="6" fill="#FFFFFF" stroke="#B8C5D2" stroke-width="1.2"/>
+<text x="428" y="399" font-size="15" font-weight="700" fill="#10231F">Combined retriever</text>
+<text x="428" y="422" font-size="12" font-weight="400" fill="#10231F">retrieve(query)</text>
+<text x="428" y="439" font-size="12" font-weight="400" fill="#10231F">Weighted context</text>
+<rect x="644" y="372" width="252" height="120" rx="6" fill="#FFFFFF" stroke="#B8C5D2" stroke-width="1.2"/>
+<text x="658" y="399" font-size="15" font-weight="700" fill="#10231F">Local vector stores</text>
+<text x="658" y="422" font-size="12" font-weight="400" fill="#10231F">Wiki | trading | code</text>
+<text x="658" y="439" font-size="12" font-weight="400" fill="#10231F">Similarity search in process</text>
+<line x1="40" y1="542" x2="920" y2="542" stroke="#CBD5E1"/>
+<text x="40" y="566" font-size="12" font-weight="400" fill="#475569">Dashed arrows are responses. The chain sends Groq the prompt plus weighted documents, then returns answer and sources.</text>
+</svg></div></main></body></html>

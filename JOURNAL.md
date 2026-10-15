@@ -4,6 +4,10 @@
 > happen — retrospectives need this raw material to land. Reverse-chronological;
 > one paragraph max per entry.
 
+## 2026-10-13: Replaced README Mermaid diagrams #decision
+
+The README now uses a six-component request/return figure with a PNG embed and editable HTML source. The vector stores stay separate from Groq in the drawing, so the retrieval step remains visible; a short paragraph carries the full question-to-answer path for readers who cannot use the image.
+
 ## 2026-10-11: Rank retrieval by relevance across corpora #decision
 
 The first retrieval benchmark scored 0.0 recall@5. Weighted rank fusion gave the trading and code corpora enough weight that no wiki page could reach the top five, while wiki-only retrieval found 7 of 10 labeled sources. The three stores share one embedding model, so the combined retriever now merges their vectors and ranks by cosine similarity. Recall@5 rose to 0.7 and MRR to 0.4367, the same as wiki-only retrieval. The three remaining misses are wiki-ranking problems for the next change. Parsing, fill, and position-limit tests now run without downloading a model, so the suite can gate CI.
