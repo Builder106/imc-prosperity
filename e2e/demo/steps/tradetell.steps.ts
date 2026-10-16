@@ -3,10 +3,9 @@ import { expect, type Page } from "@playwright/test";
 
 const { Given, When, Then } = createBdd();
 
-// The first page load triggers initialize_rag_system() (knowledge-base load +
-// embedding warm-up), which can take 1–3 minutes; and each answer round-trips
-// through Groq. Give those beats room without flaking.
-const RAG_INIT_TIMEOUT = 360_000;
+// Research loads on demand, and each answer round-trips through Groq.
+// Give that request room without slowing the market and replay views.
+const RESEARCH_VIEW_TIMEOUT = 30_000;
 const ANSWER_TIMEOUT = 360_000;
 
 // Explicit dwell so "thing just appeared" beats read at 1x in the recording —
@@ -22,11 +21,7 @@ async function dwell(page: Page, ms = Number(process.env.DEMO_DWELL_MS ?? 1500))
 
 Given("I open the trading assistant", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  // The chat input only renders once RAG init has finished — wait on it so the
-  // rest of the scenario doesn't race the warm-up spinner.
-  await page
-    .locator('[data-testid="stChatInput"] textarea')
-    .waitFor({ state: "visible", timeout: RAG_INIT_TIMEOUT });
+  await page.getByText("Explore the market archive").waitFor({ state: "visible" });
   await dwell(page);
 });
 
@@ -35,12 +30,17 @@ Then("I see the {string} title", async ({ page }, title: string) => {
   await dwell(page);
 });
 
-Then("I see example prompts in the sidebar", async ({ page }) => {
-  const sidebar = page.locator('section[data-testid="stSidebar"]');
-  await expect(sidebar.getByText("Try asking")).toBeVisible();
-  // At least the first canned prompt chip is offered.
+When("I open Ask TradeTell", async ({ page }) => {
+  await page.getByText("Ask TradeTell", { exact: true }).click();
+  await page
+    .locator('[data-testid="stChatInput"] textarea')
+    .waitFor({ state: "visible", timeout: RESEARCH_VIEW_TIMEOUT });
+});
+
+Then("I see example prompts on the research desk", async ({ page }) => {
+  await expect(page.getByText("Start with a question")).toBeVisible();
   await expect(
-    sidebar.getByRole("button", {
+    page.getByRole("button", {
       name: "What products and position limits are introduced in Round 1?",
     }),
   ).toBeVisible();
@@ -72,7 +72,7 @@ Then("the assistant answers with sources", async ({ page }) => {
 
   const assistant = page.locator('[data-testid="stChatMessage"]').nth(1);
   await expect(assistant).toBeVisible();
-  // A grounded answer ships a collapsed "📚 N source document(s)" expander.
+  // A grounded answer ships a collapsed source expander.
   await expect(assistant.locator('[data-testid="stExpander"]')).toBeVisible();
   await dwell(page, 2500); // money shot — let the answer linger
 });
@@ -81,7 +81,7 @@ When("I open the retrieved sources", async ({ page }) => {
   const assistant = page.locator('[data-testid="stChatMessage"]').nth(1);
   await assistant
     .locator('[data-testid="stExpander"]')
-    .getByText(/source document\(s\)/)
+    .getByText(/Sources \(\d+\)/)
     .click();
   await dwell(page);
 });

@@ -6,8 +6,9 @@ Feature: TradeTell tour
 
   Scenario: A competitor asks the assistant about position limits
     Given I open the trading assistant
-    Then I see the "IMC Prosperity Trading Assistant" title
-    And I see example prompts in the sidebar
+    Then I see the "IMC Prosperity Workbench" title
+    When I open Ask TradeTell
+    And I see example prompts on the research desk
     When I ask "What are the position limits for each product?"
     Then the assistant answers with sources
     When I open the retrieved sources
