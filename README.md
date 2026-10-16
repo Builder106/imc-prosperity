@@ -2,7 +2,7 @@
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/banner-dark.svg">
     <source media="(prefers-color-scheme: light)" srcset="assets/banner-light.svg">
-    <img alt="IMC Prosperity Trading Assistant: RAG-powered trading insights" src="assets/banner-dark.svg" width="100%">
+    <img alt="TradeTell IMC Prosperity workbench banner" src="assets/banner-dark.svg" width="100%">
   </picture>
 </p>
 
@@ -12,32 +12,32 @@
 [![Live demo](https://img.shields.io/badge/demo-live-success.svg)](https://tradetell.streamlit.app)
 [![Built with Streamlit](https://img.shields.io/badge/built%20with-Streamlit-FF4B4B.svg)](https://streamlit.io)
 
-> **An AI assistant for competitive algorithmic trading.** Turns rules, market data, and community knowledge into automated trading bots.
+> **A workbench for IMC Prosperity research.** Inspect recorded markets, replay a built-in Trader, and ask questions grounded in competition sources.
 
-## 💡 What is this Assistant?
+## What is TradeTell?
 
-In algorithmic trading competitions, participants write code that buys and sells assets automatically in simulated markets. This assistant acts like a trading coach and strategy generator. It reads competition rulebooks, historical trade data, and community discussions to answer technical questions and generate working trading algorithms.
+TradeTell brings three tasks into one Streamlit page. The Market desk lets you explore a recorded Round 2 price trace, order book, and public trades. The Replay lab runs a built-in strategy on a small, matching historical sample. Ask TradeTell searches competition rules, market data, and code examples to answer questions with inspectable sources.
 
-Ask about products, position limits, and market mechanics, or request a ready-to-run trading algorithm grounded in competition rules via search-augmented AI (RAG).
+The market and replay views work without an API key. The assistant needs a Groq API key and builds its search index when you first ask a question.
 
 **Live app:** [tradetell.streamlit.app](https://tradetell.streamlit.app)
 
-## 🛠 Technical Overview
+## Technical overview
 
-This project combines documentation wikis, trading logs, and code examples into an AI search system that can:
+The market viewer reads a tracked Round 2 fixture. The Replay lab uses matching Round 1 and Round 2 samples with the existing simulator's fill rules. The research view searches the local wiki, market, and code corpora to:
 
 - Answer questions about IMC Prosperity rules, mechanics, and market concepts
-- Analyze trading logs and highlight key performance insights
-- Help develop and improve trading algorithms by generating complete Python trading classes
-- Retrieve relevant historical market data and verified code examples to back up its answers
+- Draft Trader classes for review and testing
+- Show the retrieved material behind each answer
 
 ## Features
 
-- **Interactive chat interface**: Conversational web UI with chat history, verified source documents, and example prompts
+- **Market desk**: Product and time controls for a tracked Round 2 price fixture, with a linked order-book snapshot and public-trade tape
+- **Replay lab**: Built-in Round 1 and Round 2 Traders, three public-trade matching rules, and sample P&L, drawdown, fill, and rejection results
+- **Ask TradeTell**: Conversational research with chat history, retrieved source documents, and example prompts
 - **Multi-source search**: Searches across three in-process knowledge stores (rules wiki, historical trading data, and code examples)
-- **Fast cloud inference**: Powered by the Groq API (`llama-3.3-70b-versatile` by default)
-- **Comprehensive knowledge base**: Includes competition guides, community discussions, and processed market datasets
-- **Trading log analyzer**: Summarizes and extracts actionable insights from competition logs
+- **Groq inference**: Uses `llama-3.3-70b-versatile` by default when answering questions
+- **Trading log analyzer**: A separate command summarizes competition logs
 
 ## How it works
 
@@ -45,13 +45,13 @@ This project combines documentation wikis, trading logs, and code examples into 
 
 Streamlit sends the question to GroqRagChain. Its combined retriever searches local wiki, trading, and code stores and returns weighted context. Groq generates the answer, which Streamlit shows with the source documents. [Editable HTML source](assets/diagrams/rag-flow.html).
 
-The vector stores are built in memory at startup. Streamlit caches the assembled
-retriever for the session, but a cold start still processes and embeds the
-corpus as needed.
+The vector stores are built in memory when the first question is asked. Streamlit
+caches the assembled retriever, but the first question still processes and embeds
+the corpus.
 
 ## Project structure
 
-- **`app.py`**: Streamlit application entry point (chat UI + RAG wiring)
+- **`app.py`**: Streamlit workbench entry point (market, replay, and research views)
 - **`src/`**: source code
   - **`rag/`**: RAG system
     - **`build_rag_system.py`**: document processing, vector stores, retriever, chain
@@ -60,7 +60,7 @@ corpus as needed.
     - **`process_raw_trading_data.py`**: trading-data processing
   - **`algorithms/`**: round-by-round trading algorithms
   - **`utils/`**: Notion scraper and trading-log tools
-- **`data/`**: `prosperity_wiki/` (Markdown), `trading_data/`, processed datasets
+- **`data/`**: `prosperity_wiki/` (Markdown), `trading_data/`, and tracked `samples/` for the Replay lab
 - **`tests/`**: pytest suite (offline; network mocked)
 
 ## Getting started
@@ -69,17 +69,17 @@ corpus as needed.
 
 - Python 3.11+
 - Installed dependencies (`uv sync --group dev`)
-- A Groq API key ([console.groq.com/keys](https://console.groq.com/keys))
+- A Groq API key for Ask TradeTell ([console.groq.com/keys](https://console.groq.com/keys))
 
 ### Installation
 
 ```bash
 git clone https://github.com/Builder106/imc-prosperity.git
-cd IMC_Prosperity
+cd imc-prosperity
 uv sync --group dev
 ```
 
-Create a `.env` in the project root with your Groq API key:
+To use Ask TradeTell, create a `.env` in the project root with your Groq API key:
 
 ```bash
 GROQ_API_KEY=your_groq_api_key_here
@@ -105,9 +105,9 @@ streamlit run app.py
 
 ## Usage
 
-1. Ask a question about products, position limits, or strategies, or request a trading algorithm.
-2. Read the AI-generated answer; expand **sources** to see the retrieved context.
-3. Use the sidebar example prompts as starting points.
+1. Open **Market desk** and choose a product, time window, and timestamp to inspect recorded prices, quotes, and public trades.
+2. Open **Replay lab**, choose a built-in Trader and matching rule, and run its 800-tick sample. Expand the fill assumptions before interpreting its P&L.
+3. Open **Ask TradeTell** to ask about rules or strategies. Expand **Sources** under an answer to inspect the retrieved context.
 
 ### Working with trading logs
 
@@ -119,7 +119,7 @@ Follow the prompts to input a log file path and receive a detailed summary.
 
 ### Evaluating strategies
 
-Replay a built-in strategy on the bundled historical market data:
+Replay a built-in strategy on a local historical archive:
 
 ```bash
 uv run python -m src.evaluation.strategy_replay --round 1 --match-trades worse
@@ -129,6 +129,9 @@ Use `--round 2` or pass `--day -1` to select one day. The report includes
 daily P&L, drawdown, fills, inventory, and rejected orders. Queue priority,
 conversions, and Round 2 market-access bidding are not modeled. See the
 [evaluation plan](docs/specs/rag-eval-and-decoupling-plan.md) for the fill rules.
+Rows with no quotes carry forward the last valid mid price for inventory
+valuation. The Streamlit Replay lab uses tracked 800-tick samples; the CLI can
+read the larger local archive when it is available.
 
 Measure retrieval against the app's local corpus and embedding model:
 

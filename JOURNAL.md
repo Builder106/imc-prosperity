@@ -4,6 +4,10 @@
 > happen — retrospectives need this raw material to land. Reverse-chronological;
 > one paragraph max per entry.
 
+## 2026-10-15: Turned TradeTell into a market workbench #decision
+
+The Streamlit page now opens on a recorded Round 2 market desk, with product and time controls, a price trace scaled to the data, order-book snapshots, and public trades. A Replay lab runs the existing simulator on small tracked Round 1 and Round 2 day-0 samples; Ask TradeTell retains sourced chat and builds its in-memory index only when used. The separate market fixture and replay samples are labeled so their results are not conflated. Headless Chrome review exposed an obscuring mobile sidebar, clipped product labels, and an inflated drawdown: the app now starts with responsive sidebar behavior, uses a product table, and carries forward the last valid mid price when an archive row has no quotes.
+
 ## 2026-10-13: Replaced README Mermaid diagrams #decision
 
 The README now uses a six-component request/return figure with a PNG embed and editable HTML source. The vector stores stay separate from Groq in the drawing, so the retrieval step remains visible; a short paragraph carries the full question-to-answer path for readers who cannot use the image.
