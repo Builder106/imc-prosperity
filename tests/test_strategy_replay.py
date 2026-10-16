@@ -113,6 +113,22 @@ def test_replay_marks_inventory_and_exposes_previous_tick_trades_only(market_fil
     assert result["max_abs_position"] == {"X": 4}
 
 
+def test_replay_carries_last_quote_when_archive_mid_is_zero(market_files):
+    prices, trades = market_files
+    prices.write_text(
+        "timestamp;product;mid_price;bid_price_1;bid_volume_1;ask_price_1;ask_volume_1\n"
+        "0;X;100;99;4;101;3\n"
+        "100;X;0;;;;\n",
+        encoding="utf-8",
+    )
+
+    result = run_day(1, prices, trades, ScriptedTrader(2), {"X": 10}, "none")
+
+    assert result["ending_position"] == {"X": 2}
+    assert result["total_pnl"] == -2
+    assert result["max_drawdown"] == 2
+
+
 def test_replay_rejects_orders_that_could_breach_limits(market_files):
     prices, trades = market_files
     result = run_day(1, prices, trades, ScriptedTrader(5), {"X": 4}, "none")

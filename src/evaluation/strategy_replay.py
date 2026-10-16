@@ -98,7 +98,11 @@ def read_day(prices_path: Path, trades_path: Path) -> dict[int, Tick]:
                     depth.sell_orders[ask_price] = -ask_volume
 
             tick.order_depths[product] = depth
-            tick.mid_prices[product] = float(row["mid_price"])
+            mid_price = float(row["mid_price"])
+            if mid_price <= 0 and (depth.buy_orders or depth.sell_orders):
+                raise ValueError(f"Invalid mid price for quoted {product} at {timestamp}")
+            if mid_price > 0:
+                tick.mid_prices[product] = mid_price
 
     with trades_path.open(encoding="utf-8", newline="") as trades_file:
         reader = csv.DictReader(trades_file, delimiter=";")
