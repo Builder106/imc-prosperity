@@ -1,53 +1,195 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>From question to sourced answer</title>
-<style>body{margin:0;padding:24px;background:#F8FAFC;color:#10231F;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}main{max-width:960px;min-width:0;margin:0 auto}.figure-scroll{width:100%;overflow-x:auto}svg{display:block;width:100%;min-width:960px}@media print{.figure-scroll{overflow-x:visible}svg{min-width:0}}</style></head>
-<body><main><div class="figure-scroll"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 600" role="img" aria-labelledby="rag-flow-title rag-flow-desc">
-<title id="rag-flow-title">From question to sourced answer</title>
-<desc id="rag-flow-desc">Streamlit queries local context, then sends the grounded prompt to Groq. Dashed arrows are responses. The chain sends Groq the prompt plus weighted documents, then returns answer and sources.</desc>
-<defs><marker id="rag-flow-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path d="M1 1 L7 4 L1 7" fill="none" stroke="#047857" stroke-width="1.5"/></marker></defs>
-<rect width="960" height="600" fill="#FFFFFF"/>
-<text x="40" y="52" font-size="27" font-weight="700" fill="#10231F">From question to sourced answer</text>
-<text x="40" y="80" font-size="14" font-weight="400" fill="#475569">Streamlit queries local context, then sends the grounded prompt to Groq.</text>
-<line x1="40" y1="94" x2="920" y2="94" stroke="#CBD5E1"/>
-<path d="M164 244 H212" fill="none" stroke="#047857" stroke-width="1.8" marker-end="url(#rag-flow-arrow)"/>
-<path d="M370 244 H414" fill="none" stroke="#047857" stroke-width="1.8" marker-end="url(#rag-flow-arrow)"/>
-<path d="M576 244 H644" fill="none" stroke="#047857" stroke-width="1.8" marker-end="url(#rag-flow-arrow)"/>
-<path d="M496 308 V372" fill="none" stroke="#047857" stroke-width="1.8" marker-end="url(#rag-flow-arrow)"/>
-<path d="M594 418 H644" fill="none" stroke="#047857" stroke-width="1.8" marker-end="url(#rag-flow-arrow)"/>
-<path d="M644 466 H594" fill="none" stroke="#047857" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#rag-flow-arrow)"/>
-<path d="M550 372 V308" fill="none" stroke="#047857" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#rag-flow-arrow)"/>
-<path d="M644 292 H576" fill="none" stroke="#047857" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#rag-flow-arrow)"/>
-<path d="M414 292 H370" fill="none" stroke="#047857" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#rag-flow-arrow)"/>
-<path d="M212 292 H164" fill="none" stroke="#047857" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#rag-flow-arrow)"/>
-<text x="190" y="229" font-size="11" font-weight="500" fill="#475569" text-anchor="middle">ask</text>
-<text x="392" y="229" font-size="11" font-weight="500" fill="#475569" text-anchor="middle">invoke</text>
-<text x="610" y="229" font-size="11" font-weight="500" fill="#475569" text-anchor="middle">prompt</text>
-<text x="610" y="402" font-size="11" font-weight="500" fill="#475569" text-anchor="middle">search</text>
-<text x="615" y="480" font-size="11" font-weight="500" fill="#475569" text-anchor="middle">top-k</text>
-<rect x="40" y="212" width="124" height="96" rx="6" fill="#FFFFFF" stroke="#B8C5D2" stroke-width="1.2"/>
-<text x="54" y="239" font-size="15" font-weight="700" fill="#10231F">User</text>
-<text x="54" y="262" font-size="12" font-weight="400" fill="#10231F">Question</text>
-<text x="54" y="279" font-size="12" font-weight="400" fill="#10231F">Sourced answer</text>
-<rect x="212" y="212" width="158" height="96" rx="6" fill="#FFFFFF" stroke="#B8C5D2" stroke-width="1.2"/>
-<text x="226" y="239" font-size="15" font-weight="700" fill="#10231F">Streamlit UI</text>
-<text x="226" y="262" font-size="12" font-weight="400" fill="#10231F">app.py</text>
-<text x="226" y="279" font-size="12" font-weight="400" fill="#10231F">Renders sources</text>
-<rect x="414" y="212" width="162" height="96" rx="6" fill="#ECFDF5" stroke="#047857" stroke-width="1.2"/>
-<text x="428" y="239" font-size="15" font-weight="700" fill="#10231F">GroqRagChain</text>
-<text x="428" y="262" font-size="12" font-weight="400" fill="#10231F">invoke({query})</text>
-<text x="428" y="279" font-size="12" font-weight="400" fill="#10231F">Ranks context</text>
-<rect x="644" y="212" width="252" height="96" rx="6" fill="#F8FAFC" stroke="#B8C5D2" stroke-width="1.2"/>
-<text x="658" y="239" font-size="15" font-weight="700" fill="#10231F">Groq API</text>
-<text x="658" y="262" font-size="12" font-weight="400" fill="#10231F">llama-3.3-70b</text>
-<text x="658" y="279" font-size="12" font-weight="400" fill="#10231F">Generates answer</text>
-<rect x="414" y="372" width="180" height="120" rx="6" fill="#FFFFFF" stroke="#B8C5D2" stroke-width="1.2"/>
-<text x="428" y="399" font-size="15" font-weight="700" fill="#10231F">Combined retriever</text>
-<text x="428" y="422" font-size="12" font-weight="400" fill="#10231F">retrieve(query)</text>
-<text x="428" y="439" font-size="12" font-weight="400" fill="#10231F">Weighted context</text>
-<rect x="644" y="372" width="252" height="120" rx="6" fill="#FFFFFF" stroke="#B8C5D2" stroke-width="1.2"/>
-<text x="658" y="399" font-size="15" font-weight="700" fill="#10231F">Local vector stores</text>
-<text x="658" y="422" font-size="12" font-weight="400" fill="#10231F">Wiki | trading | code</text>
-<text x="658" y="439" font-size="12" font-weight="400" fill="#10231F">Similarity search in process</text>
-<line x1="40" y1="542" x2="920" y2="542" stroke="#CBD5E1"/>
-<text x="40" y="566" font-size="12" font-weight="400" fill="#475569">Dashed arrows are responses. The chain sends Groq the prompt plus weighted documents, then returns answer and sources.</text>
-</svg></div></main></body></html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IMC Prosperity question answering</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&family=IBM+Plex+Sans:wght@400;600&display=swap">
+<style>
+:root { color-scheme: light dark; --bg: #ffffff; --ink: #1f2328; --muted: #59636e; --edge: #59636e; --box: #8c959f; --group: #d1d9e0; --groupfill: #f6f8fa; --accent: #0969da; }
+@media (prefers-color-scheme: dark) { :root { --bg: #0d1117; --ink: #f0f6fc; --muted: #9198a1; --edge: #9198a1; --box: #656c76; --group: #3d444d; --groupfill: #151b23; --accent: #4493f8; } }
+html, body { margin: 0; background: var(--bg); }
+main { max-width: 720px; margin: 0 auto; }
+svg { display: block; width: 100%; height: auto; }
+text { font-family: "IBM Plex Sans", system-ui, sans-serif; fill: var(--ink); }
+.mono { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+.muted { fill: var(--muted); }
+.accent-text { fill: var(--accent); }
+.bg, .halo { fill: var(--bg); }
+.node { fill: var(--bg); stroke-width: 1.25; }
+.node.box { stroke: var(--box); }
+.node.accent { stroke: var(--accent); stroke-width: 2; }
+.group { fill: var(--groupfill); stroke: var(--group); }
+.boundary { fill: none; stroke: var(--box); stroke-dasharray: 6 6; }
+.edge { fill: none; stroke: var(--edge); stroke-width: 1.5; }
+.edge.accent { stroke: var(--accent); stroke-width: 2; }
+.edge.dashed { stroke-dasharray: 6 5; }
+.lifeline { fill: none; stroke: var(--group); stroke-dasharray: 4 5; }
+.tip { fill: var(--edge); }
+.tip-accent { fill: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 273" role="img" aria-labelledby="diagram-title diagram-desc">
+<title id="diagram-title">IMC Prosperity question answering</title>
+<desc id="diagram-desc">Everything except the Groq call runs inside the Streamlit process. The Streamlit app passes a question to GroqRagChain. The chain asks the combined retriever, which searches local vector stores for the wiki, trading data, and code and fuses the three rankings. The chain caps the context, sends one prompt to the Groq API, and returns the answer with its sources.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path class="tip" d="M0,0 L10,5 L0,10 Z"/></marker>
+<marker id="arrow-accent" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path class="tip-accent" d="M0,0 L10,5 L0,10 Z"/></marker>
+</defs>
+<rect class="bg" width="720" height="273"/>
+<rect class="boundary" x="16" y="16" width="490" height="241" rx="8"/>
+<text x="30" y="40" font-size="14" class="muted" font-weight="600">Runs in the Streamlit process</text>
+<rect class="node box" x="36" y="52" width="170" height="67" rx="6"/>
+<text x="50" y="79" font-size="16" font-weight="600">Streamlit app</text>
+<text x="50" y="100" font-size="14" class="muted mono">app.py</text>
+<rect class="node box" x="286" y="52" width="200" height="67" rx="6"/>
+<text x="300" y="79" font-size="16" class="mono" font-weight="600">GroqRagChain</text>
+<text x="300" y="100" font-size="14" class="muted">caps the context</text>
+<rect class="node box" x="286" y="160" width="200" height="67" rx="6"/>
+<text x="300" y="187" font-size="16" font-weight="600">Combined retriever</text>
+<text x="300" y="208" font-size="14" class="muted">fuses three rankings</text>
+<path class="node box" d="M36,170 V227 A90,10 0 0 0 216,227 V170 A90,10 0 0 0 36,170 Z"/><ellipse class="node box" cx="126" cy="170" rx="90" ry="10"/>
+<text x="50" y="197" font-size="16" font-weight="600">Vector stores</text>
+<text x="50" y="218" font-size="14" class="muted">wiki, trading, code</text>
+<rect class="node box" x="556" y="52" width="148" height="67" rx="6"/>
+<text x="570" y="79" font-size="16" font-weight="600">Groq API</text>
+<text x="570" y="100" font-size="14" class="muted mono">llama-3.3-70b</text>
+<path class="edge" d="M206,72.1 L286,72.1" marker-end="url(#arrow)"/>
+<rect class="halo" x="226.32" y="51.1" width="39.36" height="19"/>
+<text x="246" y="64.1" font-size="14" class="label" text-anchor="middle">asks</text>
+<path class="edge dashed" d="M286,98.9 L206,98.9" marker-end="url(#arrow)"/>
+<rect class="halo" x="218.48" y="77.9" width="55.04" height="19"/>
+<text x="246" y="90.9" font-size="14" class="label" text-anchor="middle">answer</text>
+<path class="edge" d="M386,119 L386,160" marker-end="url(#arrow)"/>
+<rect class="halo" x="390" y="131.5" width="47.2" height="19"/>
+<text x="394" y="144.5" font-size="14" class="label">query</text>
+<path class="edge" d="M286,193.5 L216,193.5" marker-end="url(#arrow)"/>
+<rect class="halo" x="223.48" y="172.5" width="55.04" height="19"/>
+<text x="251" y="185.5" font-size="14" class="label" text-anchor="middle">search</text>
+<path class="edge accent" d="M486,72.1 L556,72.1" marker-end="url(#arrow-accent)"/>
+<rect class="halo" x="493.48" y="51.1" width="55.04" height="19"/>
+<text x="521" y="64.1" font-size="14" class="label accent-text" text-anchor="middle">prompt</text>
+<path class="edge dashed" d="M556,98.9 L486,98.9" marker-end="url(#arrow)"/>
+<rect class="halo" x="493.48" y="77.9" width="55.04" height="19"/>
+<text x="521" y="90.9" font-size="14" class="label" text-anchor="middle">answer</text>
+</svg>
+</main>
+<script type="application/json" id="diagram-spec">
+{
+  "title": "IMC Prosperity question answering",
+  "desc": "Everything except the Groq call runs inside the Streamlit process. The Streamlit app passes a question to GroqRagChain. The chain asks the combined retriever, which searches local vector stores for the wiki, trading data, and code and fuses the three rankings. The chain caps the context, sends one prompt to the Groq API, and returns the answer with its sources.",
+  "width": 720,
+  "groups": [
+    {
+      "x": 16,
+      "y": 16,
+      "w": 490,
+      "h": 241,
+      "label": "Runs in the Streamlit process",
+      "boundary": true
+    }
+  ],
+  "nodes": [
+    {
+      "id": "ui",
+      "x": 36,
+      "y": 52,
+      "w": 170,
+      "title": "Streamlit app",
+      "lines": [
+        {
+          "text": "app.py",
+          "mono": true
+        }
+      ]
+    },
+    {
+      "id": "chain",
+      "x": 286,
+      "y": 52,
+      "w": 200,
+      "title": "GroqRagChain",
+      "mono_title": true,
+      "lines": [
+        "caps the context"
+      ]
+    },
+    {
+      "id": "retr",
+      "x": 286,
+      "y": 160,
+      "w": 200,
+      "title": "Combined retriever",
+      "lines": [
+        "fuses three rankings"
+      ]
+    },
+    {
+      "id": "stores",
+      "x": 36,
+      "y": 160,
+      "w": 180,
+      "title": "Vector stores",
+      "lines": [
+        "wiki, trading, code"
+      ],
+      "shape": "store"
+    },
+    {
+      "id": "groq",
+      "x": 556,
+      "y": 52,
+      "w": 148,
+      "title": "Groq API",
+      "lines": [
+        {
+          "text": "llama-3.3-70b",
+          "mono": true
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "ui.r@0.3",
+      "to": "chain.l@0.3",
+      "label": "asks"
+    },
+    {
+      "from": "chain.l@0.7",
+      "to": "ui.r@0.7",
+      "label": "answer",
+      "dashed": true
+    },
+    {
+      "from": "chain.b",
+      "to": "retr.t",
+      "label": "query"
+    },
+    {
+      "from": "retr.l",
+      "to": [
+        216,
+        193.5
+      ],
+      "label": "search"
+    },
+    {
+      "from": "chain.r@0.3",
+      "to": "groq.l@0.3",
+      "label": "prompt",
+      "accent": true
+    },
+    {
+      "from": "groq.l@0.7",
+      "to": "chain.r@0.7",
+      "label": "answer",
+      "dashed": true
+    }
+  ]
+}
+</script>
+</body>
+</html>

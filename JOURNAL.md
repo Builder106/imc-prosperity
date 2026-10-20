@@ -4,6 +4,10 @@
 > happen — retrospectives need this raw material to land. Reverse-chronological;
 > one paragraph max per entry.
 
+## 2026-10-19: Redraw the RAG figure around the process boundary #decision
+
+The figure now makes one point: everything except the Groq call runs inside the Streamlit process. The old version had overlapping labels and an empty top third.
+
 ## 2026-10-15: Turned TradeTell into a market workbench #decision
 
 The Streamlit page now opens on a recorded Round 2 market desk, with product and time controls, a price trace scaled to the data, order-book snapshots, and public trades. A Replay lab runs the existing simulator on small tracked Round 1 and Round 2 day-0 samples; Ask TradeTell retains sourced chat and builds its in-memory index only when used. The separate market fixture and replay samples are labeled so their results are not conflated. Headless Chrome review exposed an obscuring mobile sidebar, clipped product labels, and an inflated drawdown: the app now starts with responsive sidebar behavior, uses a product table, and carries forward the last valid mid price when an archive row has no quotes.

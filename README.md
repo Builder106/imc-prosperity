@@ -41,9 +41,14 @@ The market viewer reads a tracked Round 2 fixture. The Replay lab uses matching 
 
 ## How it works
 
-![How a question becomes an answer with sources](assets/diagrams/rag-flow.png)
+Everything except the call to Groq runs inside the Streamlit process.
 
-Streamlit sends the question to GroqRagChain. Its combined retriever searches local wiki, trading, and code stores and returns weighted context. Groq generates the answer, which Streamlit shows with the source documents. [Editable HTML source](assets/diagrams/rag-flow.html).
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/diagrams/rag-flow-dark.png">
+  <img src="assets/diagrams/rag-flow.png" alt="Inside the Streamlit process, the app asks GroqRagChain, which queries a combined retriever that searches local vector stores for the wiki, trading data, and code. The chain sends one prompt to the Groq API outside the process and returns the answer to the app." width="720">
+</picture>
+
+Streamlit passes the question to GroqRagChain. Its combined retriever searches the local wiki, trading, and code stores and fuses the three rankings. The chain trims that context to fit Groq's token limit and sends one prompt, and Streamlit shows the answer with its source documents. [Editable HTML source](assets/diagrams/rag-flow.html).
 
 The vector stores are built in memory when the first question is asked. Streamlit
 caches the assembled retriever, but the first question still processes and embeds
