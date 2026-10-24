@@ -48,7 +48,6 @@ norecursedirs = ["tools", ".venv", "vectordb", "data", "backtests"]
 addopts = "--cov --cov-report=term-missing --cov-fail-under=100"
 filterwarnings = [
     "error",
-    "ignore::DeprecationWarning",
 ]
 
 [tool.coverage.run]
@@ -85,6 +84,7 @@ select = [
     "PT",   # flake8-pytest-style
     "RUF",  # ruff-specific
     "SIM",  # flake8-simplify
+    "ANN401",
 ]
 ignore = [
     "BLE001",     # Allow broad exception handling in CLI scripts

@@ -109,3 +109,7 @@ Stood up the assistant: a Notion scraper pulls the competition wiki to Markdown,
 is embedded into Chroma alongside trading data and extracted code, queried through an
 ensemble retriever and a code-generation prompt, behind a Streamlit UI. The retriever
 weights wiki / trading / code stores separately so algorithm requests pull real examples.
+
+## 2026-10-23: Reject Any annotations and warnings in CI #decision
+
+Ruff now checks maintained source, the app, and tests for Any in function boundaries. Pytest treats warnings as errors, and the blanket deprecation-warning ignore is gone. The frozen competition tool checkout remains outside lint scope.
