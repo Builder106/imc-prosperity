@@ -1,0 +1,276 @@
+.tt {
+  --basalt: #0d0e10;
+  --shelf: #16181b;
+  --dust: #e7e9ec;
+  --muted: #959ca6;
+  --line: rgba(231, 233, 236, 0.12);
+  --osmium: #8ea9c6;
+  --pepper: #ee5a36;
+  --gutter: 24px;
+  --margin: 40px;
+  --t-xl: clamp(2.4rem, 1.2rem + 4.4vw, 5.6rem);
+  --t-l: clamp(1.5rem, 1.1rem + 1.4vw, 2.4rem);
+  --t-m: 1.25rem;
+  --t-body: clamp(1rem, 0.96rem + 0.15vw, 1.0625rem);
+  --t-s: 0.875rem;
+  --settle: cubic-bezier(0.215, 0.61, 0.355, 1);
+  color: var(--dust);
+  font-family: "Archivo", system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+.tt, .tt * { box-sizing: border-box; }
+/* The section mounts in the page DOM, so Streamlit's global type styles are reset here. */
+:where(.tt) :where(h1, h2, h3, p) { padding: 0; font-family: inherit; scroll-margin-top: 0; color: inherit; }
+:where(.tt) :where(a, a:hover) { color: inherit; }
+:where(.tt) :where(table, th, td, tr) { border: 0; background: none; font-family: inherit; }
+:where(.tt) button { font-family: inherit; line-height: 1.2; margin: 0; }
+
+.tt-visually-hidden {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}
+
+.tt {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  padding: 28px var(--margin) 0;
+}
+
+/* Frame: mark on column 1, the fact hangs from column 5. */
+.tt-frame { display: contents; }
+.tt-mark {
+  grid-column: 1 / 5; grid-row: 1; align-self: start;
+  display: grid; grid-template-columns: auto 1fr; column-gap: 12px; align-items: center;
+  color: var(--dust); text-decoration: none; width: max-content;
+}
+.tt-mark__glyph { width: 32px; height: 32px; grid-row: 1 / 3; }
+.tt-mark__name { font-size: 1.0625rem; font-weight: 700; font-variation-settings: "wdth" 112; letter-spacing: -0.01em; }
+.tt-mark__what { font-size: var(--t-s); color: var(--muted); }
+.tt-mark:focus-visible { outline: 2px solid var(--dust); outline-offset: 6px; }
+
+.tt-head { grid-column: 5 / 13; grid-row: 1; padding-bottom: clamp(24px, 4vh, 48px); }
+.tt-fact {
+  margin: 0 0 0 -0.04em;
+  font-size: var(--t-xl); line-height: 0.94; font-weight: 800;
+  font-variation-settings: "wdth" 112; letter-spacing: -0.035em;
+  text-wrap: balance; max-width: 14ch;
+}
+.tt-fact em { font-style: normal; color: var(--pepper); }
+.tt[data-layer="trader"] .tt-fact { max-width: 19ch; }
+.tt-fact .tt-osm { color: var(--osmium); }
+.tt-lede {
+  margin: 20px 0 0; max-width: 44rem; color: var(--muted);
+  font-size: var(--t-body); line-height: 1.55;
+}
+.tt-lede strong { color: var(--dust); font-weight: 600; }
+
+/* The section: the cut face of four recorded days. */
+.tt-section { grid-column: 1 / 13; margin: 0 calc(var(--margin) * -1); position: relative; }
+.tt-plot {
+  position: relative; height: clamp(340px, 50vh, 600px);
+  background:
+    linear-gradient(to bottom, transparent 0, transparent calc(100% - 1px), var(--line) calc(100% - 1px)),
+    var(--shelf);
+  touch-action: pan-y;
+  cursor: crosshair;
+  overflow: clip;
+}
+.tt-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.tt-loading {
+  position: absolute; left: var(--margin); bottom: 24px; margin: 0;
+  color: var(--muted); font-size: var(--t-s);
+}
+.tt.has-overview .tt-loading { display: none; }
+.tt:not(.has-overview) .tt-days { visibility: hidden; }
+.tt:not(.is-ready) .tt-core__goods { min-height: 520px; }
+
+.tt-yaxis { position: absolute; inset: 0; pointer-events: none; }
+.tt-yaxis span {
+  position: absolute; left: var(--margin); translate: 0 -50%;
+  font-size: 0.75rem; color: var(--muted); letter-spacing: 0.01em;
+}
+.tt-tags { position: absolute; inset: 0; pointer-events: none; }
+.tt-tag {
+  position: absolute; right: var(--margin); translate: 0 -100%; padding-bottom: 6px;
+  font-size: var(--t-s); font-weight: 600; white-space: nowrap;
+  transition: opacity 0.4s var(--settle);
+}
+.tt-tag small { display: block; font-weight: 400; color: var(--muted); font-size: 0.75rem; }
+.tt-tag--pepper { color: var(--pepper); }
+.tt-tag--osmium { color: var(--osmium); }
+.tt-tag--trader { color: var(--dust); }
+
+.tt:not(.is-live) { visibility: hidden; }
+/* The probe is a 24 px wide strip centred on its line, so keyboard focus has a real box. */
+.tt-probe {
+  position: absolute; top: 0; bottom: 0; left: -12px; width: 24px;
+  outline: none; opacity: 0; transition: opacity 0.3s var(--settle);
+}
+.tt.has-overview .tt-probe { opacity: 1; }
+.tt-probe__line { position: absolute; top: 0; bottom: 0; left: 11.5px; width: 1px; background: var(--dust); opacity: 0.55; }
+.tt-probe__handle {
+  position: absolute; bottom: 14px; left: 3px; width: 18px; height: 18px; border-radius: 999px;
+  background: var(--basalt); border: 2px solid var(--dust); cursor: ew-resize;
+  transition: scale 0.25s var(--settle);
+}
+.tt-probe__time {
+  position: absolute; bottom: 15px; left: 28px; white-space: nowrap;
+  font-size: 0.75rem; font-weight: 600; color: var(--dust);
+  background: var(--basalt); padding: 3px 7px;
+}
+.tt-probe.is-flipped .tt-probe__time { left: auto; right: 28px; }
+.tt-probe:focus-visible .tt-probe__line { opacity: 1; width: 2px; left: 11px; }
+.tt-probe:focus-visible .tt-probe__handle { outline: 2px solid var(--dust); outline-offset: 3px; scale: 1.15; }
+.tt-probe.is-ghost .tt-probe__line { opacity: 0.3; }
+
+/* Day labels sit under their stretch of the section. */
+.tt-days { position: relative; height: 58px; }
+.tt-day {
+  position: absolute; top: 10px; translate: -50% 0;
+  display: grid; justify-items: center; row-gap: 2px;
+  min-height: 44px; padding: 4px 10px; background: none; border: 0; cursor: pointer;
+  color: var(--dust); font: inherit; font-size: var(--t-s); font-weight: 600; white-space: nowrap;
+  transition: opacity 0.5s var(--settle), translate 0.9s cubic-bezier(0.87, 0, 0.13, 1);
+}
+.tt-day small { font-weight: 400; color: var(--muted); font-size: 0.75rem; }
+.tt-day span, .tt-legend__name, .tt-back span {
+  background: linear-gradient(var(--pepper) 0 0) left bottom / 0% 2px no-repeat;
+  padding-bottom: 2px;
+  transition: background-size 0.45s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+.tt-day[aria-pressed="true"] span { background-size: 100% 2px; }
+.tt-day:focus-visible, .tt-legend a:focus-visible, .tt-back:focus-visible { outline: 2px solid var(--dust); outline-offset: 4px; }
+.tt-day:focus-visible span, .tt-back:focus-visible span { background-size: 100% 2px; }
+.tt-day.is-away { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.5s var(--settle), visibility 0s 0.5s, translate 0.9s cubic-bezier(0.87, 0, 0.13, 1); }
+.tt-back {
+  position: absolute; left: var(--margin); top: 10px; min-height: 44px;
+  background: none; border: 0; padding: 4px 0; cursor: pointer;
+  color: var(--muted); font: inherit; font-size: var(--t-s);
+}
+.tt-back[hidden] { display: none; }
+
+/* Under the section: legend on column 1, readout from column 5. */
+.tt-under { grid-column: 1 / 13; display: grid; grid-template-columns: subgrid; padding: 28px 0 56px; row-gap: 40px; }
+.tt-legend { grid-column: 1 / 4; display: grid; align-content: start; row-gap: 4px; }
+.tt-legend a {
+  display: grid; grid-template-columns: 20px 1fr; column-gap: 12px; align-items: baseline;
+  padding: 10px 0; color: var(--dust); text-decoration: none; min-height: 44px;
+}
+.tt-legend__name { font-weight: 600; font-size: 1.0625rem; width: max-content; }
+.tt-legend__what { grid-column: 2; font-size: var(--t-s); color: var(--muted); }
+.tt-legend a[aria-current="page"] .tt-legend__name { background-size: 100% 2px; }
+.tt-key { width: 20px; height: 12px; align-self: center; grid-row: 1 / 3; }
+.tt-key--ground { background: linear-gradient(to top right, transparent 46%, var(--pepper) 47% 60%, transparent 61%), linear-gradient(to top, transparent 2px, var(--osmium) 2px 5px, transparent 5px); }
+.tt-key--trader { background: linear-gradient(to bottom, transparent 5px, var(--dust) 5px 7px, transparent 7px); }
+.tt-key--notes { border: 1.5px solid var(--muted); border-left-width: 5px; }
+.tt-key--index { background: repeating-linear-gradient(to bottom, var(--muted) 0 1.5px, transparent 1.5px 4px); }
+.tt-mark__glyph path, .tt-mark__glyph circle, .tt-key { transition: translate 0.45s var(--settle); }
+.tt-mark:focus-visible .tt-mark__glyph path, .tt-mark:focus-visible .tt-mark__glyph circle { translate: 0 -6px; }
+@media (hover: hover) {
+  .tt-day:hover span, .tt-legend a:hover .tt-legend__name, .tt-back:hover span { background-size: 100% 2px; }
+  .tt-day[aria-pressed="true"]:hover span, .tt-legend a[aria-current="page"]:hover .tt-legend__name { background-size: 100% 4px; }
+  .tt-legend a:hover .tt-key { translate: 4px 0; }
+  .tt-mark:hover .tt-mark__glyph path, .tt-mark:hover .tt-mark__glyph circle { translate: 0 -6px; }
+  .tt-probe__handle:hover { scale: 1.15; }
+}
+
+.tt-core { grid-column: 5 / 13; min-width: 0; }
+.tt[data-layer="trader"] .tt-core { grid-column: 4 / 8; }
+.tt-core__when { margin: 0 0 18px; font-size: var(--t-s); font-weight: 600; color: var(--muted); letter-spacing: 0.01em; }
+.tt-core__when b { color: var(--dust); font-weight: 600; }
+.tt-core__goods { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--gutter); row-gap: 32px; }
+.tt[data-layer="trader"] .tt-core__goods { grid-template-columns: 1fr; }
+.tt-good__name { margin: 0; font-size: var(--t-s); font-weight: 600; }
+.tt-good--pepper .tt-good__name { color: var(--pepper); }
+.tt-good--osmium .tt-good__name { color: var(--osmium); }
+.tt-good__mid { margin: 4px 0 2px; font-size: var(--t-l); font-weight: 700; font-variation-settings: "wdth" 112; letter-spacing: -0.02em; line-height: 1.05; }
+.tt-good__note { margin: 0 0 14px; font-size: var(--t-s); color: var(--muted); }
+.tt-ladder { width: 100%; border-collapse: collapse; font-size: var(--t-s); }
+.tt-ladder th { text-align: left; font-weight: 400; color: var(--muted); padding: 3px 12px 3px 0; width: 4.5em; }
+.tt-ladder td { padding: 3px 0; }
+.tt-ladder td.tt-px { width: 6.5em; font-weight: 600; }
+.tt-ladder td.tt-none { color: var(--muted); }
+.tt-ladder .tt-bar { display: inline-block; height: 8px; vertical-align: middle; margin-right: 8px; background: currentColor; opacity: 0.85; }
+.tt-good--pepper .tt-ladder .tt-bar { color: var(--pepper); }
+.tt-good--osmium .tt-ladder .tt-bar { color: var(--osmium); }
+.tt-ladder tr.is-bid .tt-bar { opacity: 0.45; }
+.tt-ladder tr.tt-gap td, .tt-ladder tr.tt-gap th { padding: 7px 0; color: var(--muted); border-block: 1px solid var(--line); }
+.tt-good__trades { margin: 12px 0 0; font-size: var(--t-s); color: var(--muted); }
+
+/* The Trader layer. */
+.tt-trader { display: none; grid-column: 8 / 13; min-width: 0; }
+.tt[data-layer="trader"] .tt-trader { display: block; }
+.tt[data-layer="notes"] .tt-core, .tt[data-layer="index"] .tt-core { display: none; }
+.tt-controls { display: grid; row-gap: 18px; }
+.tt-choice { border: 0; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.tt-choice legend { padding: 0; margin-bottom: 8px; font-size: var(--t-s); color: var(--muted); }
+.tt-choice button {
+  position: relative; isolation: isolate; overflow: clip;
+  min-height: 44px; padding: 10px 16px; border: 1px solid var(--line); background: none;
+  color: var(--dust); font: inherit; font-size: var(--t-s); font-weight: 600; cursor: pointer;
+  transition: color 0.35s var(--settle), border-color 0.35s var(--settle), translate 0.35s var(--settle);
+}
+.tt-choice button::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; background: var(--dust);
+  clip-path: inset(100% 0 0 0); transition: clip-path 0.45s var(--settle);
+}
+.tt-choice button[aria-pressed="true"] { color: var(--basalt); border-color: var(--dust); }
+.tt-choice button[aria-pressed="true"]::before { clip-path: inset(0 0 0 0); }
+.tt-choice button:focus-visible { outline: 2px solid var(--dust); outline-offset: 3px; }
+@media (hover: hover) {
+  .tt-choice button:not([aria-pressed="true"]):hover { border-color: rgba(231, 233, 236, 0.4); }
+  .tt-choice button:not([aria-pressed="true"]):hover::before { clip-path: inset(78% 0 0 0); }
+  .tt-choice button[aria-pressed="true"]:hover { translate: 0 -2px; }
+}
+.tt-choice button:active::before { clip-path: inset(0 0 0 0); }
+.tt-choice button:active { color: var(--basalt); }
+
+.tt-results { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px var(--gutter); margin: 32px 0 0; }
+.tt-results div { min-width: 0; }
+.tt-results dt { font-size: var(--t-s); color: var(--muted); }
+.tt-results dd { margin: 2px 0 0; font-size: var(--t-m); font-weight: 600; }
+.tt-results .is-pepper dd { color: var(--pepper); }
+.tt-results .is-osmium dd { color: var(--osmium); }
+.tt-trader.is-busy .tt-results { opacity: 0.4; transition: opacity 0.3s; }
+.tt-caveat { margin: 28px 0 0; font-size: var(--t-s); line-height: 1.55; color: var(--muted); max-width: 40rem; }
+
+/* Notes and index: the section becomes a strip you can still read and click. */
+.tt[data-layer="notes"] .tt-plot, .tt[data-layer="index"] .tt-plot { height: 150px; }
+.tt[data-layer="notes"] .tt-under, .tt[data-layer="index"] .tt-under { padding-bottom: 8px; }
+.tt[data-layer="notes"] .tt-legend, .tt[data-layer="index"] .tt-legend {
+  grid-column: 1 / 13; grid-template-columns: repeat(4, max-content); column-gap: 56px;
+}
+
+@media (max-width: 900px) {
+  .tt { grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: 16px; --margin: 16px; padding-top: 18px; }
+  .tt-mark { grid-column: 1 / 5; }
+  .tt-head { grid-column: 1 / 5; grid-row: 2; padding: 22px 0 22px; }
+  .tt-fact { font-size: clamp(2.3rem, 1rem + 7.4vw, 3.4rem); max-width: 12ch; }
+  .tt-lede { margin-top: 14px; }
+  .tt-section { grid-column: 1 / 5; }
+  .tt-plot { height: 300px; }
+  .tt-tag { font-size: 0.8125rem; }
+  .tt-under { grid-column: 1 / 5; padding-bottom: 104px; row-gap: 28px; }
+  .tt-legend {
+    position: fixed; z-index: 50; left: 0; right: 0; bottom: 0;
+    grid-template-columns: repeat(4, 1fr); column-gap: 0; row-gap: 0;
+    background: var(--basalt); border-top: 1px solid var(--line); padding: 0 8px env(safe-area-inset-bottom);
+  }
+  .tt[data-layer] .tt-legend { grid-template-columns: repeat(4, 1fr); column-gap: 0; }
+  .tt-legend a { grid-template-columns: 1fr; justify-items: center; row-gap: 6px; padding: 10px 4px 12px; }
+  .tt-key { grid-row: auto; }
+  .tt-legend__name { font-size: 0.8125rem; }
+  .tt-legend__what { display: none; }
+  .tt-core, .tt[data-layer="trader"] .tt-core { grid-column: 1 / 5; }
+  .tt-core__goods { grid-template-columns: 1fr; }
+  .tt-trader { grid-column: 1 / 5; grid-row: 1; }
+  .tt[data-layer="trader"] .tt-trader { display: block; }
+  .tt-results { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tt[data-layer="notes"] .tt-plot, .tt[data-layer="index"] .tt-plot { height: 110px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before { transition: none !important; }
+}

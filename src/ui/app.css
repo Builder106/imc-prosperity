@@ -1,0 +1,95 @@
+/* Streamlit's page shell, quieted so the section is the whole interface. */
+:root {
+  --basalt: #0d0e10;
+  --shelf: #16181b;
+  --dust: #e7e9ec;
+  --muted: #959ca6;
+  --line: rgba(231, 233, 236, 0.12);
+  --osmium: #8ea9c6;
+  --pepper: #ee5a36;
+  --margin: 40px;
+  --gutter: 24px;
+  --col: calc((100vw - 2 * var(--margin) - 11 * var(--gutter)) / 12);
+  --hang: calc(var(--margin) + 4 * (var(--col) + var(--gutter)));
+}
+html, body, .stApp { background: var(--basalt); }
+::selection { background: var(--pepper); color: var(--basalt); }
+[data-testid="stHeader"], [data-testid="stToolbar"], [data-testid="stDecoration"],
+[data-testid="stSidebar"], [data-testid="stSidebarCollapsedControl"], footer { display: none !important; }
+[data-testid="stMainBlockContainer"], .block-container { padding: 0 !important; max-width: none !important; }
+[data-testid="stMain"] [data-testid="stVerticalBlock"] { gap: 0; }
+.stElementContainer:has(> .stHtml style:only-child) { display: none; }
+
+/* Field notes and the index hang from the readout's column, like the rest of the system. */
+.st-key-notes, .st-key-index {
+  padding: 0 var(--margin) 96px var(--hang);
+  font-family: "Archivo", system-ui, sans-serif;
+  color: var(--dust);
+}
+.st-key-notes [data-testid="stVerticalBlock"], .st-key-index [data-testid="stVerticalBlock"] { gap: 16px; }
+.notes-start { margin: 8px 0 4px; font-size: 0.875rem; color: var(--muted); }
+
+.st-key-notes .stButton { width: 100%; }
+.st-key-notes .st-key-clear .stButton { width: auto; }
+.st-key-notes .stButton > button {
+  position: relative; isolation: isolate; overflow: clip;
+  width: 100%; min-height: 56px; justify-content: flex-start; text-align: left;
+  padding: 14px 18px; border: 1px solid var(--line); border-radius: 0; background: none;
+  color: var(--dust); font-size: 1.0625rem; font-weight: 500; line-height: 1.4;
+  transition: color 0.35s cubic-bezier(0.215, 0.61, 0.355, 1), border-color 0.35s;
+}
+.st-key-notes .stButton > button::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; background: var(--dust);
+  clip-path: inset(100% 0 0 0); transition: clip-path 0.45s cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+@media (hover: hover) {
+  .st-key-notes .stButton > button:hover { color: var(--basalt); border-color: var(--dust); }
+  .st-key-notes .stButton > button:hover::before { clip-path: inset(0 0 0 0); }
+}
+.st-key-notes .stButton > button:focus-visible { outline: 2px solid var(--dust); outline-offset: 3px; color: var(--basalt); }
+.st-key-notes .stButton > button:focus-visible::before, .st-key-notes .stButton > button:active::before { clip-path: inset(0 0 0 0); }
+.st-key-notes .stButton > button:active { color: var(--basalt); }
+.st-key-notes .stButton > button p { font-size: inherit; }
+.st-key-notes .st-key-clear .stButton > button { min-height: 44px; width: auto; font-size: 0.875rem; color: var(--muted); }
+
+.st-key-notes [data-testid="stChatMessage"] {
+  background: none; padding: 20px 0; border-top: 1px solid var(--line); border-radius: 0; gap: 16px;
+}
+.st-key-notes [data-testid="stChatMessage"] p, .st-key-notes [data-testid="stChatMessage"] li { font-size: 1.0625rem; line-height: 1.6; }
+.st-key-notes [data-testid="stChatInput"] { border-radius: 0; }
+.st-key-notes [data-testid="stChatInput"] textarea { font-size: 1.0625rem; }
+.st-key-notes [data-testid="stChatInputSubmitButton"] { transition: background 0.3s, translate 0.3s; }
+@media (hover: hover) { .st-key-notes [data-testid="stChatInputSubmitButton"]:hover { background: var(--pepper); translate: 0 -2px; } }
+
+/* Sources read like specimen labels: what it is, where it came from, then the passage. */
+.st-key-notes [data-testid="stExpander"] details { border: 0; border-left: 4px solid var(--muted); border-radius: 0; }
+.st-key-notes [data-testid="stExpander"] summary { font-weight: 600; }
+.specimen { margin: 18px 0 6px; }
+.specimen b { display: block; font-size: 0.9375rem; }
+.specimen span { font-size: 0.8125rem; color: var(--muted); }
+
+/* Index: plain tables and links. */
+.ix h2 { margin: 40px 0 12px; font-size: 1.25rem; font-weight: 700; font-variation-settings: "wdth" 112; letter-spacing: -0.01em; }
+.ix h2:first-child { margin-top: 8px; }
+.ix p, .ix li { font-size: 1.0625rem; line-height: 1.6; color: var(--dust); max-width: 44rem; }
+.ix .muted { color: var(--muted); }
+.ix a { color: var(--dust); text-decoration: underline; text-decoration-color: var(--pepper); text-decoration-thickness: 2px; text-underline-offset: 0.2em; }
+.ix a:hover { text-decoration-thickness: 4px; }
+.ix a { display: inline-block; padding: 4px 0; }
+.ix a:focus-visible { outline: 2px solid var(--dust); outline-offset: 3px; }
+.ix table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 0.9375rem; }
+.ix th, .ix td { text-align: left; padding: 10px 16px 10px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+.ix th { font-weight: 400; color: var(--muted); }
+.ix .pepper { color: var(--pepper); }
+.ix .osmium { color: var(--osmium); }
+.ix ul { padding-left: 1.1em; }
+
+@media (max-width: 900px) {
+  :root { --margin: 16px; }
+  .st-key-notes, .st-key-index { padding: 0 var(--margin) 120px; }
+  .ix table { font-size: 0.8125rem; }
+  .ix th, .ix td { padding-right: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .st-key-notes .stButton > button, .st-key-notes .stButton > button::before { transition: none; }
+}

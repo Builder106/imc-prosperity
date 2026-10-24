@@ -1,16 +1,32 @@
 [theme]
 base = "dark"
-primaryColor = "#10B981"
-backgroundColor = "#0B0F14"
-secondaryBackgroundColor = "#151C24"
-textColor = "#E6EDF3"
-font = "sans serif"
+primaryColor = "#EE5A36"
+backgroundColor = "#0D0E10"
+secondaryBackgroundColor = "#16181B"
+textColor = "#E7E9EC"
+borderColor = "#2A2D31"
+font = "Archivo, sans-serif"
+headingFont = "Archivo, sans-serif"
+baseRadius = "none"
+linkColor = "#E7E9EC"
+
+[[theme.fontFaces]]
+family = "Archivo"
+url = "app/static/fonts/archivo-var.woff2"
+weight = "100 900"
+style = "normal"
+
+[ui]
+hideTopBar = true
 
 [client]
 showErrorDetails = true
 toolbarMode = "minimal"
+showSidebarNavigation = false
 
 [server]
+# The section fetches the recorded days and the font from ./static.
+enableStaticServing = true
 # Disable the source file-watcher. On Streamlit Community Cloud it serves no
 # purpose (redeploys are git-driven), and it crawls every imported module's
 # __path__ — which makes `transformers` eagerly import its vision models

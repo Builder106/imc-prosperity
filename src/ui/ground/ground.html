@@ -1,0 +1,79 @@
+<div class="tt" data-layer="ground">
+  <header class="tt-frame">
+    <a class="tt-mark" href="?" data-nav="ground" aria-label="TradeTell, back to the ground">
+      <svg class="tt-mark__glyph" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+        <rect x="4" y="43" width="56" height="8" fill="var(--osmium)"></rect>
+        <path d="M8 47 L30 31 L56 9" fill="none" stroke="var(--pepper)" stroke-width="7"></path>
+        <circle cx="8" cy="47" r="5" fill="var(--pepper)"></circle>
+      </svg>
+      <span class="tt-mark__name">TradeTell</span>
+      <span class="tt-mark__what">IMC Prosperity 4 market workbench</span>
+    </a>
+    <div class="tt-head">
+      <h1 class="tt-fact">Both goods opened at 10,000. Only the <em>root</em> grew.</h1>
+      <p class="tt-lede">Four recorded days on Intara, the Prosperity 4 trading planet. <strong>Ash-Coated Osmium</strong> held near 10,000 XIRECs every day. <strong>Intarian Pepper Root</strong> climbed about 1,000 a day. Move the probe to open the order book at any tick.</p>
+    </div>
+  </header>
+
+  <figure class="tt-section" aria-labelledby="tt-section-caption">
+    <figcaption id="tt-section-caption" class="tt-visually-hidden"></figcaption>
+    <div class="tt-plot">
+      <canvas class="tt-canvas" aria-hidden="true"></canvas>
+      <div class="tt-yaxis" aria-hidden="true"></div>
+      <div class="tt-tags" aria-hidden="true"></div>
+      <div class="tt-probe" role="slider" tabindex="0" aria-label="Probe position in the record">
+        <span class="tt-probe__line"></span>
+        <span class="tt-probe__handle"></span>
+        <span class="tt-probe__time"></span>
+      </div>
+      <p class="tt-loading" role="status">Opening the record</p>
+    </div>
+    <div class="tt-days" role="group" aria-label="Zoom to a recorded day"></div>
+  </figure>
+
+  <div class="tt-under">
+    <nav class="tt-legend" aria-label="Layers of the section">
+      <a href="?layer=ground" data-nav="ground">
+        <span class="tt-key tt-key--ground" aria-hidden="true"></span>
+        <span class="tt-legend__name">Ground</span>
+        <span class="tt-legend__what">The order book at any tick</span>
+      </a>
+      <a href="?layer=trader" data-nav="trader">
+        <span class="tt-key tt-key--trader" aria-hidden="true"></span>
+        <span class="tt-legend__name">Your Trader</span>
+        <span class="tt-legend__what">Replay a built-in Trader</span>
+      </a>
+      <a href="?layer=notes" data-nav="notes">
+        <span class="tt-key tt-key--notes" aria-hidden="true"></span>
+        <span class="tt-legend__name">Field notes</span>
+        <span class="tt-legend__what">Ask the wiki, with sources</span>
+      </a>
+      <a href="?layer=index" data-nav="index">
+        <span class="tt-key tt-key--index" aria-hidden="true"></span>
+        <span class="tt-legend__name">Index</span>
+        <span class="tt-legend__what">Every day and view as a list</span>
+      </a>
+    </nav>
+
+    <section class="tt-core" aria-label="Order book at the probe">
+      <h2 class="tt-core__when">Loading the order book</h2>
+      <div class="tt-core__goods"></div>
+    </section>
+
+    <section class="tt-trader" aria-label="Replay settings and results">
+      <div class="tt-controls">
+        <fieldset class="tt-choice" data-choice="trader">
+          <legend>Trader</legend>
+        </fieldset>
+        <fieldset class="tt-choice" data-choice="day">
+          <legend>Day</legend>
+        </fieldset>
+        <fieldset class="tt-choice" data-choice="match">
+          <legend>Public trades fill my resting orders</legend>
+        </fieldset>
+      </div>
+      <dl class="tt-results"></dl>
+      <p class="tt-caveat">Marketable orders fill against the displayed book. Resting orders fill from public trades by the rule above. Inventory is valued at the last valid mid price. Queue priority, conversions and the Round 2 market access bid are not modeled.</p>
+    </section>
+  </div>
+</div>

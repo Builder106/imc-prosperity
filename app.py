@@ -1,109 +1,132 @@
+import html
 import os
 from pathlib import Path
 
-import altair as alt
-import pandas as pd
 import streamlit as st
 from dotenv import load_dotenv
-from src.evaluation.strategy_replay import load_trader, run_day
-from src.rag.build_rag_system import (
-    create_combined_retriever,
-    create_rag_chain,
-    create_vector_stores,
-    process_discord_data,
-    process_notion_wiki_data,
-    process_trading_data,
+from src.ui.ground import component_value, intara_section
+from src.ui.workbench import (
+    DAYS,
+    MATCHES,
+    OSMIUM,
+    PEPPER,
+    TRADERS,
+    DaySummary,
+    Overview,
+    Place,
+    ReplayPayload,
+    day_summary,
+    overview,
+    parse_params,
+    place_params,
+    replay_payload,
 )
 
 load_dotenv()
 
-# Page configuration
-# Custom browser-tab favicon: the candlestick logo (assets/logo.png). Resolved
-# relative to this file so it works regardless of the working directory the app
-# is launched from (Streamlit Cloud runs from the repo root). Streamlit's
-# page_icon expects a raster path/emoji — it doesn't render SVG favicons — so we
-# point at the PNG, not logo.svg. Falls back to the chart emoji if the file is
-# missing.
-_FAVICON = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "logo.png")
-st.set_page_config(
-    page_title="TradeTell | IMC Prosperity Workbench",
-    page_icon=_FAVICON if os.path.exists(_FAVICON) else "📈",
-    layout="wide",
-    initial_sidebar_state="auto",
-)
-
-# Styling
-st.markdown(
-    """
-    <style>
-      .block-container { max-width: 1120px; padding-top: 3rem; padding-bottom: 6rem; }
-      section[data-testid="stSidebar"] { background: #122025; }
-      section[data-testid="stSidebar"] .block-container { padding-top: 2rem; }
-      .app-title { color: #ECF4F0; font-size: clamp(2rem, 3vw, 2.5rem); line-height: 1.12;
-        font-weight: 750; letter-spacing: -0.045em; margin: 0 0 0.75rem; }
-      .app-subtitle { color: #B1C3BF; font-size: 1.05rem; line-height: 1.5;
-        max-width: 680px; margin: 0 0 2.5rem; }
-      .stButton > button { width: 100%; min-height: 44px; text-align: left;
-        justify-content: flex-start; white-space: normal; line-height: 1.4;
-        color: #ECF4F0; background: transparent; border: 0; padding: 0.5rem 0.25rem; }
-      .stButton > button:hover { color: #8FE9BD; background: transparent; border-color: transparent; }
-      .stButton > button:focus-visible { outline: 3px solid #8FE9BD; outline-offset: 2px; }
-      .stButton > button[kind="primary"], .stButton > button[data-testid="stBaseButton-primary"] {
-        background: #65D6A3; color: #091216; border-radius: 10px; padding: 0.65rem 1rem;
-      }
-      .stButton > button[kind="primary"]:hover,
-      .stButton > button[data-testid="stBaseButton-primary"]:hover {
-        background: #8FE9BD; color: #091216;
-      }
-      [data-testid="stChatMessage"] { background: #122025; border-radius: 14px; padding: 1rem; }
-      @media (max-width: 768px) {
-        .block-container { padding-top: 1.5rem; }
-        .app-subtitle { margin-bottom: 1.75rem; }
-      }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
 PROJECT_ROOT = Path(__file__).resolve().parent
-MARKET_PRICES = PROJECT_ROOT / "src/algorithms/round_2/test_data/CSV/prices_round_2.csv"
-MARKET_TRADES = PROJECT_ROOT / "src/algorithms/round_2/test_data/CSV/trades_round_2.csv"
-REPLAY_SAMPLES = PROJECT_ROOT / "data/samples"
+FAVICON = PROJECT_ROOT / "assets" / "logo.png"
+TITLES = {
+    "ground": "TradeTell | Intara market record",
+    "trader": "TradeTell | Replay a Trader",
+    "notes": "TradeTell | Field notes",
+    "index": "TradeTell | Index",
+}
+EXAMPLE_PROMPTS = (
+    "What does the wiki say about Intarian Pepper Root and Ash-Coated Osmium?",
+    "What are the position limits in Round 1?",
+    "How does the Market Access Fee bid work in Round 2?",
+    "Write a market-making Trader class for ASH_COATED_OSMIUM.",
+)
 
-EXAMPLE_PROMPTS = [
-    ("Rules", "What products and position limits are introduced in Round 1?"),
-    ("Code", "Write a market-making Trader class for RAINFOREST_RESIN."),
-    ("Strategy", "Explain a basket-arbitrage strategy for the PICNIC_BASKET products."),
-    ("Risk", "How should I manage risk against position limits in my algorithm?"),
-]
+params = parse_params(st.query_params.to_dict())
+layer = params["layer"]
 
-
-@st.cache_data
-def load_market_data() -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Load the tracked Round 2 market fixture for exploration."""
-    return pd.read_csv(MARKET_PRICES, sep=";"), pd.read_csv(MARKET_TRADES, sep=";")
-
-
-@st.cache_data(show_spinner=False)
-def replay_sample(round_num: int, match_trades: str) -> dict[str, object]:
-    """Replay a built-in strategy on the matching 800-tick day sample."""
-    sample_dir = REPLAY_SAMPLES / f"replay_round_{round_num}"
-    trader, limits = load_trader(round_num)
-    return run_day(
-        round_num,
-        sample_dir / f"prices_round_{round_num}_day_0.csv",
-        sample_dir / f"trades_round_{round_num}_day_0.csv",
-        trader,
-        limits,
-        match_trades,
+st.set_page_config(
+    page_title=TITLES[layer],
+    page_icon=str(FAVICON) if FAVICON.exists() else "📈",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
+st.html(f"<style>{(PROJECT_ROOT / 'src/ui/app.css').read_text(encoding='utf-8')}</style>")
+# The section mounts after its script loads; reserving its height keeps the notes and index from
+# jumping down under it. Measured at 1440 and 390 px wide.
+RESERVED_HEIGHT = {"notes": (530, 446), "index": (504, 421)}
+if layer in RESERVED_HEIGHT:
+    desktop, phone = RESERVED_HEIGHT[layer]
+    st.html(
+        f"<style>.st-key-intara {{ min-height: {desktop}px; }}"
+        f"@media (max-width: 900px) {{ .st-key-intara {{ min-height: {phone}px; }} }}</style>"
     )
 
 
+@st.cache_data(show_spinner=False, max_entries=24)
+def replay(trader_round: int, day: int, match: str) -> ReplayPayload:
+    return replay_payload(trader_round, day, match)
+
+
+@st.cache_data(show_spinner=False)
+def record_overview() -> Overview:
+    return overview()
+
+
+@st.cache_data(show_spinner=False)
+def cached_day_summary(day: int) -> DaySummary:
+    return day_summary(day)
+
+
+@st.cache_data(show_spinner=False)
+def summaries() -> list[DaySummary]:
+    return [cached_day_summary(day) for day in DAYS]
+
+
+# The section reports state through these callbacks, which run before the script reruns.
+def on_place() -> None:
+    place = component_value("place")
+    if isinstance(place, dict):
+        merged: Place = {
+            "zoom": place.get("zoom"),
+            "day": int(place.get("day", params["place"]["day"])),
+            "t": int(place.get("t", params["place"]["t"])),
+        }
+        for name in ("zoom", "day", "t"):
+            st.query_params.pop(name, None)
+        st.query_params.update(place_params(merged))
+
+
+def on_replay() -> None:
+    settings = component_value("replay")
+    if isinstance(settings, dict):
+        st.query_params.update(
+            {
+                "trader": str(settings.get("trader")),
+                "rday": str(settings.get("day")),
+                "match": str(settings.get("match")),
+            }
+        )
+
+
+def on_nav() -> None:
+    target = component_value("nav")
+    if isinstance(target, str):
+        st.query_params["layer"] = target
+
+
 # RAG system (built once, cached for the session)
-@st.cache_resource(show_spinner="Loading knowledge base and building the RAG system…")
+@st.cache_resource(show_spinner="Loading the knowledge base and building the search index…")
 def initialize_rag_system():
     if os.environ.get("TRADETELL_TEST_MODE") == "1":
         return _fake_rag_chain()
+    # Imported here so the section paints without waiting for the embedding stack to load.
+    from src.rag.build_rag_system import (
+        create_combined_retriever,
+        create_rag_chain,
+        create_vector_stores,
+        process_discord_data,
+        process_notion_wiki_data,
+        process_trading_data,
+    )
+
     notion_documents = process_notion_wiki_data()
     notion_documents.extend(process_discord_data())
     trading_documents = process_trading_data()
@@ -137,11 +160,10 @@ def _fake_rag_chain():
 
 
 def render_sources(source_documents):
-    """Render retrieved context inside a collapsed expander."""
+    """Render retrieved passages as specimen labels inside a collapsed expander."""
     if not source_documents:
         return
-    label = f"Sources ({len(source_documents)})"
-    with st.expander(label):
+    with st.expander(f"Sources ({len(source_documents)})"):
         for i, doc in enumerate(source_documents, start=1):
             metadata = doc.metadata
             source = os.path.basename(str(metadata.get("source", "Unknown")))
@@ -154,237 +176,150 @@ def render_sources(source_documents):
                 corpus = "Competition wiki"
             else:
                 corpus = "Source"
-            st.markdown(f"**{i}. {title}**")
-            st.caption(f"{corpus} | {source}")
+            st.html(
+                f'<p class="specimen"><b>{i}. {html.escape(str(title))}</b>'
+                f"<span>{corpus}, {html.escape(source)}</span></p>"
+            )
             st.code(doc.page_content, language="text")
 
 
-# Sidebar
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+def bridge_secrets() -> None:
+    # On Streamlit Cloud, secrets aren't automatically in os.environ; bridge the config keys
+    # across so the os.getenv-based model config picks them up. Locally this no-ops.
+    if os.environ.get("TRADETELL_TEST_MODE") == "1":
+        return
+    try:
+        # HF_TOKEN authenticates the sentence-transformers model download.
+        for key in (
+            "GROQ_API_KEY",
+            "LLM_MODEL",
+            "LLM_TEMPERATURE",
+            "GROQ_TIMEOUT_SECONDS",
+            "EMBEDDING_MODEL",
+            "HF_TOKEN",
+        ):
+            if key in st.secrets:
+                os.environ.setdefault(key, str(st.secrets[key]))
+    except (ImportError, FileNotFoundError):
+        # st.secrets may not be available in all contexts
+        pass
 
-with st.sidebar:
-    st.image(_FAVICON, width=46)
-    st.markdown("## TradeTell")
-    st.caption("IMC Prosperity market research")
-    workspace = st.radio("Workspace", ("Market desk", "Replay lab", "Ask TradeTell"))
-    st.divider()
-    st.caption("Recorded competition data and sourced research. No live market feed.")
-    if st.session_state.messages and st.button("Clear conversation", key="clear"):
+
+def render_notes() -> None:
+    bridge_secrets()
+    if "messages" not in st.session_state:
         st.session_state.messages = []
-        st.rerun()
+    with st.container(key="notes"):
+        pending = st.session_state.pop("pending_prompt", None)
+        if not st.session_state.messages and not pending:
+            st.html('<p class="notes-start">Start with a question</p>')
+            for i, example in enumerate(EXAMPLE_PROMPTS):
+                if st.button(example, key=f"example_{i}", width="stretch"):
+                    st.session_state.pending_prompt = example
+                    st.rerun()
 
+        for message in st.session_state.messages:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+                if message["role"] == "assistant":
+                    render_sources(message.get("sources", []))
 
-# The three tools share the same page shell but load their data only when used.
-def render_market_desk() -> None:
-    st.subheader("Explore the market archive")
-    st.caption("Round 2, day 1. Tracked historical fixture.")
-    prices, trades = load_market_data()
-    products = sorted(prices["product"].unique())
-    product_column, window_column = st.columns([1, 2], gap="large")
-    with product_column:
-        product = st.selectbox("Product", products, index=products.index("PICNIC_BASKET1"))
-    product_prices = prices.loc[prices["product"] == product].sort_values("timestamp")
-    start = int(product_prices["timestamp"].min())
-    end = int(product_prices["timestamp"].max())
-    with window_column:
-        window = st.slider("Time window", start, end, (start, end), step=100)
-    visible = product_prices.loc[product_prices["timestamp"].between(*window)]
-    chart_sample = visible.iloc[:: max(1, len(visible) // 250)]
-    chart = (
-        alt.Chart(chart_sample)
-        .mark_line(color="#65D6A3", strokeWidth=2)
-        .encode(
-            x=alt.X("timestamp:Q", title="Timestamp"),
-            y=alt.Y("mid_price:Q", title="Mid price (seashells)", scale=alt.Scale(zero=False)),
-            tooltip=[
-                alt.Tooltip("timestamp:Q", title="Timestamp", format=","),
-                alt.Tooltip("mid_price:Q", title="Mid price", format=",.1f"),
-            ],
-        )
-        .properties(height=310)
-    )
-    st.altair_chart(chart, width="stretch")
-    st.caption("Mid price in seashells. Recorded data, not a live price.")
-
-    timestamp = st.slider(
-        "Inspect timestamp",
-        int(visible["timestamp"].min()),
-        int(visible["timestamp"].max()),
-        int(visible["timestamp"].iloc[len(visible) // 2]),
-        step=100,
-    )
-    snapshot = product_prices.loc[product_prices["timestamp"] == timestamp].iloc[0]
-    spread = snapshot["ask_price_1"] - snapshot["bid_price_1"]
-    product_trades = trades.loc[(trades["symbol"] == product) & (trades["timestamp"] <= timestamp)]
-    mid_metric, spread_metric, trades_metric = st.columns(3)
-    mid_metric.metric("Mid price", f"{snapshot['mid_price']:,.1f}")
-    spread_metric.metric("Best spread", f"{spread:,.0f}" if pd.notna(spread) else "No quote")
-    trades_metric.metric("Public trades to here", f"{len(product_trades):,}")
-
-    book_column, tape_column = st.columns([1, 1], gap="large")
-    with book_column:
-        st.markdown(f"### Order book at {timestamp:,}")
-        book = pd.DataFrame(
-            [
-                {
-                    "Level": level,
-                    "Bid price": snapshot[f"bid_price_{level}"],
-                    "Bid size": snapshot[f"bid_volume_{level}"],
-                    "Ask price": snapshot[f"ask_price_{level}"],
-                    "Ask size": snapshot[f"ask_volume_{level}"],
-                }
-                for level in range(1, 4)
-            ]
-        )
-        st.dataframe(book, hide_index=True, width="stretch")
-    with tape_column:
-        st.markdown("### Recent public trades")
-        if product_trades.empty:
-            st.info("No public trades for this product before this timestamp.")
-        else:
-            st.dataframe(
-                product_trades[["timestamp", "price", "quantity"]].tail(8).iloc[::-1],
-                hide_index=True,
-                width="stretch",
+        prompt = st.chat_input("Ask about a good, a rule, or a Trader class") or pending
+        if prompt:
+            st.session_state.messages.append({"role": "user", "content": prompt})
+            with st.chat_message("user"):
+                st.markdown(prompt)
+            with st.chat_message("assistant"):
+                with st.spinner("Retrieving passages and writing an answer…"):
+                    try:
+                        result = initialize_rag_system().invoke({"query": prompt})
+                        answer = result["result"]
+                        sources = result.get("source_documents", [])
+                    except Exception as exc:  # noqa: BLE001
+                        answer = "The assistant could not answer. Please try again."
+                        sources = []
+                        st.exception(exc)
+                st.markdown(answer)
+                render_sources(sources)
+            st.session_state.messages.append(
+                {"role": "assistant", "content": answer, "sources": sources}
             )
-    st.caption("The market fixture is separate from the replay samples below.")
+
+        if st.session_state.messages and st.button("Clear the notes", key="clear"):
+            st.session_state.messages = []
+            st.rerun()
 
 
-def render_replay_lab() -> None:
-    st.subheader("Replay a built-in Trader")
-    st.caption("First 800 ticks of day 0 from a matching Round 1 or Round 2 sample")
-    round_num = st.selectbox("Strategy", (1, 2), format_func=lambda value: f"Round {value} Trader")
-    mode = st.selectbox(
-        "Public trade matching",
-        ("worse", "all", "none"),
-        format_func=lambda value: {
-            "worse": "Only prices beyond my quote",
-            "all": "Include trades at my quote",
-            "none": "Displayed book only",
-        }[value],
-    )
-    if st.button("Run sample replay", type="primary"):
-        try:
-            with st.spinner("Replaying recorded market ticks…"):
-                result = replay_sample(round_num, mode)
-            st.session_state.replay_result = (round_num, mode, result)
-        except Exception as exc:  # noqa: BLE001
-            st.error("The sample replay could not finish.")
-            st.exception(exc)
+def _day_label(day: int) -> str:
+    return f"Day \N{MINUS SIGN}{-day}" if day < 0 else f"Day {day}"
 
-    record = st.session_state.get("replay_result")
-    if record and record[0] == round_num and record[1] == mode:
-        result = record[2]
-        pnl_metric, drawdown_metric, fills_metric = st.columns(3)
-        pnl_metric.metric("Sample P&L", f"{result['total_pnl']:,.2f} seashells")
-        drawdown_metric.metric("Max drawdown", f"{result['max_drawdown']:,.2f} seashells")
-        fills_metric.metric("Fills", f"{result['fills']:,}")
-        st.markdown("### P&L by product")
-        product_pnl = pd.DataFrame(
-            [
-                {"Product": product, "P&L (seashells)": pnl}
-                for product, pnl in result["product_pnl"].items()
-            ]
+
+def _n(value: float) -> str:
+    return f"{value:,.1f}".removesuffix(".0")
+
+
+def render_index() -> None:
+    rows = []
+    for summary in summaries():
+        day = summary["day"]
+        pepper, osmium = summary["goods"][PEPPER], summary["goods"][OSMIUM]
+        rows.append(
+            f"<tr><th scope='row'><a href='?layer=ground&zoom={day}&day={day}&t=500000'>"
+            f"{_day_label(day)}</a></th><td>{summary['source']}</td>"
+            f"<td class='pepper'>{_n(pepper['open'])} to {_n(pepper['close'])}</td>"
+            f"<td class='osmium'>{_n(osmium['low'])} to {_n(osmium['high'])}</td>"
+            f"<td>{pepper['trades'] + osmium['trades']:,}</td>"
+            f"<td><a href='?layer=trader&rday={day}'>Replay {_day_label(day).lower()}</a></td></tr>"
         )
-        st.dataframe(product_pnl, hide_index=True, width="stretch")
-        st.caption(
-            f"Submitted {result['submitted_orders']:,} orders, with "
-            f"{result['position_limit_rejections']:,} position-limit rejections "
-            f"and {result['traded_volume']:,} units traded."
-        )
-    with st.expander("How this replay fills orders"):
-        st.markdown(
-            "Marketable orders fill against the displayed book. Resting orders use "
-            "the selected public-trade rule. The sample covers only the first 800 "
-            "ticks of day 0. A row with no quotes carries forward the last valid "
-            "mid price for inventory valuation. Queue priority, conversions, and "
-            "Round 2 market-access bidding are not modeled."
+    with st.container(key="index"):
+        st.html(
+            f"""
+            <div class="ix">
+              <h2>Recorded days</h2>
+              <table>
+                <thead><tr><th scope="col">Day</th><th scope="col">Data capsule</th>
+                <th scope="col">Pepper root, open to close</th><th scope="col">Osmium, low to high</th>
+                <th scope="col">Public trades</th><th scope="col">Trader</th></tr></thead>
+                <tbody>{"".join(rows)}</tbody>
+              </table>
+              <p class="muted">Prices are mid prices in XIRECs. Each day has 10,000 ticks, one every 100 timestamps.</p>
+              <h2>Layers</h2>
+              <ul>
+                <li><a href="?layer=ground">Ground</a>: the four days as one section, with the order book at any tick.</li>
+                <li><a href="?layer=trader">Your Trader</a>: replay the built-in Round {TRADERS[0]} or Round {TRADERS[-1]} Trader through any day.</li>
+                <li><a href="?layer=notes">Field notes</a>: ask the competition wiki, the market archive and the code examples.</li>
+              </ul>
+              <h2>About the data</h2>
+              <p>The record comes from the Prosperity 4 data capsules: days {_day_label(-2)[4:]}, {_day_label(-1)[4:]} and 0 from Round 1, and day 1 from Round 2. Each tick holds up to three bid and three ask levels per good, plus the public trades at that tick.</p>
+              <p>The replay fills marketable orders against the displayed book and resting orders from public trades, using one of {len(MATCHES)} rules. It does not model queue priority, conversions or the Round 2 market access bid, so its results are a study aid and not a forecast of competition scores.</p>
+            </div>
+            """
         )
 
 
-def render_research() -> None:
-    st.subheader("Ask TradeTell")
-    st.caption("Questions about rules, strategies, and Trader code with retrieved context")
-    # On Streamlit Cloud, secrets aren't automatically in os.environ; bridge the
-    # config keys across so the os.getenv-based model config picks them up. Locally
-    # this no-ops (no secrets file) and .env is used instead.
-    if os.environ.get("TRADETELL_TEST_MODE") != "1":
-        try:
-            # HF_TOKEN is read by huggingface-hub when sentence-transformers pulls the
-            # embedding model; bridging it authenticates the download (higher rate limit,
-            # no "unauthenticated requests to the HF Hub" warning).
-            for key in (
-                "GROQ_API_KEY",
-                "LLM_MODEL",
-                "LLM_TEMPERATURE",
-                "GROQ_TIMEOUT_SECONDS",
-                "EMBEDDING_MODEL",
-                "HF_TOKEN",
-            ):
-                if key in st.secrets:
-                    os.environ.setdefault(key, str(st.secrets[key]))
-        except (ImportError, FileNotFoundError):
-            # st.secrets may not be available in all contexts
-            pass
+# The section is the interface on every layer; only the content under it changes.
+data: dict[str, object] = {
+    "layer": layer,
+    "static": "app/static/intara/",
+    "overview": record_overview(),
+    "place": params["place"],
+    "replay_settings": params["replay"],
+    "options": {"traders": list(TRADERS), "matches": list(MATCHES)},
+}
+zoom_day = params["place"]["zoom"]
+if layer == "ground" and zoom_day is not None:
+    data["zoom_summary"] = cached_day_summary(zoom_day)
+if layer == "trader":
+    settings = params["replay"]
+    try:
+        data["replay"] = replay(settings["trader"], settings["day"], settings["match"])
+    except Exception as exc:  # noqa: BLE001
+        st.error("The replay could not finish.")
+        st.exception(exc)
 
-    pending = st.session_state.pop("pending_prompt", None)
-    prompt = st.chat_input("Ask about a product, strategy, or Trader class…")
-    if pending:
-        prompt = pending
+intara_section(data, on_place=on_place, on_replay=on_replay, on_nav=on_nav)
 
-    if not st.session_state.messages and not prompt:
-        st.markdown("### Start with a question")
-        for category, example in EXAMPLE_PROMPTS:
-            category_column, prompt_column = st.columns([1, 5], vertical_alignment="center")
-            category_column.caption(category)
-            if prompt_column.button(example, key=f"ex_{category}"):
-                st.session_state.pending_prompt = example
-                st.rerun()
-            st.divider()
-
-    # Replay the conversation so far.
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
-            if message["role"] == "assistant":
-                render_sources(message.get("sources", []))
-
-    if prompt:
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
-
-        with st.chat_message("assistant"):
-            with st.spinner("Retrieving context and generating an answer…"):
-                try:
-                    rag_chain = initialize_rag_system()
-                    result = rag_chain.invoke({"query": prompt})
-                    answer = result["result"]
-                    sources = result.get("source_documents", [])
-                except Exception as exc:  # noqa: BLE001
-                    answer = "The assistant could not answer. Please try again."
-                    sources = []
-                    st.exception(exc)
-            st.markdown(answer)
-            render_sources(sources)
-
-        st.session_state.messages.append(
-            {"role": "assistant", "content": answer, "sources": sources}
-        )
-
-
-# Main panel
-st.markdown('<h1 class="app-title">IMC Prosperity Workbench</h1>', unsafe_allow_html=True)
-st.markdown(
-    '<p class="app-subtitle">Inspect recorded markets, test a built-in strategy, '
-    "and trace answers back to their sources.</p>",
-    unsafe_allow_html=True,
-)
-
-if workspace == "Market desk":
-    render_market_desk()
-elif workspace == "Replay lab":
-    render_replay_lab()
-else:
-    render_research()
+if layer == "notes":
+    render_notes()
+elif layer == "index":
+    render_index()
