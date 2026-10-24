@@ -12,19 +12,19 @@
 [![Live demo](https://img.shields.io/badge/demo-live-success.svg)](https://tradetell.streamlit.app)
 [![Built with Streamlit](https://img.shields.io/badge/built%20with-Streamlit-FF4B4B.svg)](https://streamlit.io)
 
-> **A workbench for IMC Prosperity research.** Inspect recorded markets, replay a built-in Trader, and ask questions grounded in competition sources.
+> **A workbench for the IMC Prosperity 4 market.** Read four recorded days tick by tick, replay a built-in Trader through any of them, and ask the competition wiki with sources.
 
 ## What is TradeTell?
 
-TradeTell brings three tasks into one Streamlit page. The Market desk lets you explore a recorded Round 2 price trace, order book, and public trades. The Replay lab runs a built-in strategy on a small, matching historical sample. Ask TradeTell searches competition rules, market data, and code examples to answer questions with inspectable sources.
+TradeTell draws the recorded Prosperity 4 market on Intara as one section. Both goods opened at 10,000 XIRECs: Ash-Coated Osmium stayed there, and Intarian Pepper Root climbed about 1,000 a day to 14,000. Move the probe along the section to open the order book at any tick. Switch on the Trader layer to replay a built-in Round 1 or Round 2 Trader through a full day and see its fills and P&L on the same ticks. Open the field notes to ask the competition wiki, market data and code examples, with the passages behind each answer.
 
-The market and replay views work without an API key. The assistant needs a Groq API key and builds its search index when you first ask a question.
+The ground and Trader layers work without an API key. The assistant needs a Groq API key and builds its search index when you first ask a question.
 
 **Live app:** [tradetell.streamlit.app](https://tradetell.streamlit.app)
 
 ## Technical overview
 
-The market viewer reads a tracked Round 2 fixture. The Replay lab uses matching Round 1 and Round 2 samples with the existing simulator's fill rules. The research view searches the local wiki, market, and code corpora to:
+The section is a Streamlit v2 component: HTML, CSS and JavaScript mounted in the page DOM. It draws four full days (40,000 ticks per good) on a canvas. The browser fetches the gzipped day files from Streamlit's static folder and decompresses them itself, and Python replays the Traders from the same files. The field notes search the local wiki, market, and code corpora to:
 
 - Answer questions about IMC Prosperity rules, mechanics, and market concepts
 - Draft Trader classes for review and testing
@@ -32,9 +32,10 @@ The market viewer reads a tracked Round 2 fixture. The Replay lab uses matching 
 
 ## Features
 
-- **Market desk**: Product and time controls for a tracked Round 2 price fixture, with a linked order-book snapshot and public-trade tape
-- **Replay lab**: Built-in Round 1 and Round 2 Traders, three public-trade matching rules, and sample P&L, drawdown, fill, and rejection results
-- **Ask TradeTell**: Conversational research with chat history, retrieved source documents, and example prompts
+- **Ground**: four recorded days as one price section; zoom into a day to split the goods onto their own scales and read three levels of book, the spread and public trades at any tick
+- **Your Trader**: replay the built-in Round 1 or Round 2 Trader through a full recorded day with one of three public-trade matching rules; fills, position, P&L, drawdown and rejections sit on the same ticks
+- **Field notes**: conversational research with chat history, retrieved source passages, and example questions
+- **Index**: every day and layer as plain links and tables, with per-day open, close and range
 - **Multi-source search**: Searches across three in-process knowledge stores (rules wiki, historical trading data, and code examples)
 - **Groq inference**: Uses `llama-3.3-70b-versatile` by default when answering questions
 - **Trading log analyzer**: A separate command summarizes competition logs
@@ -56,7 +57,9 @@ the corpus.
 
 ## Project structure
 
-- **`app.py`**: Streamlit workbench entry point (market, replay, and research views)
+- **`app.py`**: Streamlit entry point; reads the layer and probe from the URL and mounts the section
+- **`src/ui/`**: the section component (`ground/`), its Python wrapper, and data and URL helpers
+- **`static/intara/`**: the four recorded days, gzipped, served to the browser and read by the replay
 - **`src/`**: source code
   - **`rag/`**: RAG system
     - **`build_rag_system.py`**: document processing, vector stores, retriever, chain
@@ -65,7 +68,7 @@ the corpus.
     - **`process_raw_trading_data.py`**: trading-data processing
   - **`algorithms/`**: round-by-round trading algorithms
   - **`utils/`**: Notion scraper and trading-log tools
-- **`data/`**: `prosperity_wiki/` (Markdown), `trading_data/`, and tracked `samples/` for the Replay lab
+- **`data/`**: `prosperity_wiki/` (Markdown) and `trading_data/`
 - **`tests/`**: pytest suite (offline; network mocked)
 
 ## Getting started
@@ -110,9 +113,9 @@ streamlit run app.py
 
 ## Usage
 
-1. Open **Market desk** and choose a product, time window, and timestamp to inspect recorded prices, quotes, and public trades.
-2. Open **Replay lab**, choose a built-in Trader and matching rule, and run its 800-tick sample. Expand the fill assumptions before interpreting its P&L.
-3. Open **Ask TradeTell** to ask about rules or strategies. Expand **Sources** under an answer to inspect the retrieved context.
+1. On **Ground**, drag the probe or use the arrow keys (Shift for ten ticks, Page Up and Page Down for a hundred). Pick a day under the section to zoom in. The URL keeps the day and tick, so a link opens the same place.
+2. Choose **Your Trader** in the legend, then a Trader, a day and a matching rule. The replay reruns on each change. Read the fill rules under the results before interpreting its P&L.
+3. Choose **Field notes** to ask about rules or strategies. Expand **Sources** under an answer to read the retrieved passages.
 
 ### Working with trading logs
 
@@ -135,8 +138,8 @@ daily P&L, drawdown, fills, inventory, and rejected orders. Queue priority,
 conversions, and Round 2 market-access bidding are not modeled. See the
 [evaluation plan](docs/specs/rag-eval-and-decoupling-plan.md) for the fill rules.
 Rows with no quotes carry forward the last valid mid price for inventory
-valuation. The Streamlit Replay lab uses tracked 800-tick samples; the CLI can
-read the larger local archive when it is available.
+valuation. The Streamlit app replays the full days in `static/intara/`; the CLI
+reads the local competition archive when it is available.
 
 Measure retrieval against the app's local corpus and embedding model:
 

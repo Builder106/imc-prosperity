@@ -4,6 +4,10 @@
 > happen — retrospectives need this raw material to land. Reverse-chronological;
 > one paragraph max per entry.
 
+## 2026-10-24: Redesign the app as one section of the Intara record #decision
+
+The workbench is now one object: a cut face of the four recorded Prosperity 4 days, built as a Streamlit v2 component that mounts HTML, CSS and canvas JavaScript in the page DOM. The concept came from the data: both goods opened at 10,000 XIRECs on day −2; osmium never left, and pepper root climbed almost exactly 1,000 a day. The legend under the section replaced the sidebar, and its layers are the views: ground (the order book at a probe), Your Trader (a full-day replay drawn on the same ticks) and field notes (sourced answers). The old desk mixed a Prosperity 3 fixture with Prosperity 4 samples, so it was dropped. Full days ship gzipped in `static/intara/`; the browser decompresses them and Python replays from the same files, which made the 800-tick samples redundant. Full-day replays take about 0.6 s, so the Trader layer reruns on every setting change. GSAP is inlined into the component because its UMD wrapper cannot assign `window.window` in strict module scope; it runs against a scratch object instead. Streamlit still paints a white page before its frontend boots and has no custom 404 hook.
+
 ## 2026-10-19: Redraw the RAG figure around the process boundary #decision
 
 The figure now makes one point: everything except the Groq call runs inside the Streamlit process. The old version had overlapping labels and an empty top third.
