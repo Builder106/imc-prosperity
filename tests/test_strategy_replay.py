@@ -1,4 +1,5 @@
 import csv
+import gzip
 
 import pytest
 from src.algorithms.round_1.datamodel import Order, OrderDepth, Trade, TradingState
@@ -135,3 +136,19 @@ def test_replay_rejects_orders_that_could_breach_limits(market_files):
     assert result["fills"] == 0
     assert result["position_limit_rejections"] == 2
     assert result["total_pnl"] == 0
+
+
+def test_replay_reads_gzipped_days_and_traces_fills_and_equity(market_files):
+    prices, trades = market_files
+    gz_prices = prices.with_name(prices.name + ".gz")
+    gz_trades = trades.with_name(trades.name + ".gz")
+    gz_prices.write_bytes(gzip.compress(prices.read_bytes()))
+    gz_trades.write_bytes(gzip.compress(trades.read_bytes()))
+
+    result = run_day(1, gz_prices, gz_trades, ScriptedTrader(2), {"X": 10}, "none", trace=True)
+
+    assert result["day"] == 0
+    assert result["timestamps"] == [0, 100]
+    assert result["fill_log"] == [(0, "X", 2, 101), (100, "X", 2, 101)]
+    assert result["equity"] == [-2.0, -4.0]
+    assert "equity" not in run_day(1, prices, trades, ScriptedTrader(2), {"X": 10}, "none")

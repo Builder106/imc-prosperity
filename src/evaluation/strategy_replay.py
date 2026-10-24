@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import contextlib
 import csv
+import gzip
 import importlib.util
 import io
 import json
@@ -63,9 +64,15 @@ def _optional_integer(value: str | None, field_name: str) -> int | None:
     return _integer(value, field_name)
 
 
+def _open_csv(path: Path) -> io.TextIOBase:
+    if path.suffix == ".gz":
+        return cast(io.TextIOBase, gzip.open(path, "rt", encoding="utf-8", newline=""))
+    return cast(io.TextIOBase, path.open(encoding="utf-8", newline=""))
+
+
 def read_day(prices_path: Path, trades_path: Path) -> dict[int, Tick]:
     ticks: dict[int, Tick] = {}
-    with prices_path.open(encoding="utf-8", newline="") as prices_file:
+    with _open_csv(prices_path) as prices_file:
         reader = csv.DictReader(prices_file, delimiter=";")
         required = {"timestamp", "product", "mid_price"}
         if reader.fieldnames is None or not required.issubset(reader.fieldnames):
@@ -104,7 +111,7 @@ def read_day(prices_path: Path, trades_path: Path) -> dict[int, Tick]:
             if mid_price > 0:
                 tick.mid_prices[product] = mid_price
 
-    with trades_path.open(encoding="utf-8", newline="") as trades_file:
+    with _open_csv(trades_path) as trades_file:
         reader = csv.DictReader(trades_file, delimiter=";")
         required = {"timestamp", "symbol", "price", "quantity"}
         if reader.fieldnames is None or not required.issubset(reader.fieldnames):
@@ -238,11 +245,13 @@ def run_day(
     trader: TraderProtocol,
     position_limits: dict[str, int],
     match_trades: str,
+    trace: bool = False,
 ) -> dict[str, object]:
+    """Replay one day. With ``trace``, also return every fill and the equity at each tick."""
     if match_trades not in {"all", "worse", "none"}:
         raise ValueError(f"Unsupported trade matching mode: {match_trades}")
 
-    day_match = re.search(r"_day_(-?\d+)\.csv$", prices_path.name)
+    day_match = re.search(r"_day_(-?\d+)\.csv(?:\.gz)?$", prices_path.name)
     if day_match is None:
         raise ValueError(f"Could not read day number from {prices_path.name}")
     day_num = int(day_match.group(1))
@@ -260,6 +269,8 @@ def run_day(
     fill_count = 0
     traded_volume = 0
     submitted_orders = 0
+    fill_log: list[tuple[int, str, int, int]] = []
+    equity_path: list[float] = []
 
     for timestamp, tick in ticks.items():
         market_trades = {
@@ -312,6 +323,16 @@ def run_day(
                     )
                 )
             if fills:
+                if trace:
+                    fill_log.extend(
+                        (
+                            timestamp,
+                            product,
+                            trade.quantity if trade.buyer == "SUBMISSION" else -trade.quantity,
+                            trade.price,
+                        )
+                        for trade in fills
+                    )
                 next_own_trades[product] = fills
                 fill_count += len(fills)
                 traded_volume += sum(trade.quantity for trade in fills)
@@ -342,6 +363,8 @@ def run_day(
         equity = sum(cash.values()) + sum(
             position * latest_mid.get(product, 0.0) for product, position in positions.items()
         )
+        if trace:
+            equity_path.append(round(equity, 1))
         peak_equity = max(peak_equity, equity)
         max_drawdown = max(max_drawdown, peak_equity - equity)
 
@@ -350,7 +373,7 @@ def run_day(
         product: cash.get(product, 0.0) + positions.get(product, 0) * latest_mid[product]
         for product in products
     }
-    return {
+    result: dict[str, object] = {
         "round": round_num,
         "day": day_num,
         "total_pnl": round(sum(product_pnl.values()), 2),
@@ -363,6 +386,11 @@ def run_day(
         "fills": fill_count,
         "traded_volume": traded_volume,
     }
+    if trace:
+        result["timestamps"] = list(ticks)
+        result["equity"] = equity_path
+        result["fill_log"] = fill_log
+    return result
 
 
 def run_round(round_num: int, day_num: int | None, match_trades: str) -> dict[str, object]:
