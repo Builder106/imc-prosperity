@@ -1,21 +1,29 @@
 .tt {
-  --basalt: #0d0e10;
-  --shelf: #16181b;
-  --dust: #e7e9ec;
-  --muted: #959ca6;
-  --line: rgba(231, 233, 236, 0.12);
-  --osmium: #8ea9c6;
-  --pepper: #ee5a36;
+  --space: #000;
+  --band: #000e1b;
+  --navy: #012649;
+  --dust: #fff;
+  --soft: #dde6f5;
+  --muted: #9fb0c8;
+  --line: rgba(255, 255, 255, 0.1);
+  --osmium: #8fd3e8;
+  --pepper: #ff7a3d;
+  --glass: rgba(0, 25, 49, 0.6);
+  --blue: rgba(7, 81, 226, 0.6);
+  --lift: 0 12px 7px rgba(0, 9, 32, 0.3);
+  --ring: linear-gradient(110deg, rgba(255, 255, 255, 0.3) 4.41%, rgba(255, 255, 255, 0.05) 40.87%, rgba(255, 255, 255, 0.05) 57.12%, rgba(255, 255, 255, 0.3) 95.78%);
+  --glare: #fdd681;
+  --grad: linear-gradient(98deg, #b2ccff 6.13%, #6095fb 97.75%, #b2ccff 119.64%);
+  --display: "Oswald", Impact, sans-serif;
   --gutter: 24px;
   --margin: 40px;
-  --t-xl: clamp(2.4rem, 1.2rem + 4.4vw, 5.6rem);
-  --t-l: clamp(1.5rem, 1.1rem + 1.4vw, 2.4rem);
-  --t-m: 1.25rem;
-  --t-body: clamp(1rem, 0.96rem + 0.15vw, 1.0625rem);
+  --t-xl: clamp(2rem, 1.3rem + 2vw, 3rem);
+  --t-l: clamp(1.6rem, 1.2rem + 1.4vw, 2.5rem);
+  --t-card: 1.5rem;
   --t-s: 0.875rem;
   --settle: cubic-bezier(0.215, 0.61, 0.355, 1);
   color: var(--dust);
-  font-family: "Archivo", system-ui, sans-serif;
+  font-family: "Figtree", system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
 }
 
@@ -31,51 +39,132 @@
   clip-path: inset(50%); white-space: nowrap;
 }
 
+/* Prosperity's glass: translucent navy or IMC blue, lifted by a shadow, edged by a 1 px gradient ring
+   that a mask cuts down to the border. Every control in the section uses it. */
+.tt-glass { position: relative; background: var(--glass); box-shadow: var(--lift); border: 0; }
+.tt-glass::after {
+  content: ""; position: absolute; inset: 0; padding: 1px; border-radius: inherit; pointer-events: none;
+  background: var(--ring);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box exclude, linear-gradient(#fff 0 0);
+}
+
+/* Content sits in Prosperity's 1184 px column. */
 .tt {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
   column-gap: var(--gutter);
-  padding: 28px var(--margin) 0;
+  max-width: calc(1184px + 2 * var(--margin));
+  margin-inline: auto;
+  padding: 0 var(--margin);
+  position: relative;
+  /* The glow is a background so the section makes no stacking context; the phone legend is fixed above Streamlit's content. */
+  background: radial-gradient(50% 60% at 50% 0, rgba(253, 214, 129, 0.18), rgba(96, 149, 251, 0.05) 55%, transparent 100%) top center / min(900px, 100vw) 280px no-repeat;
 }
 
-/* Frame: mark on column 1, the fact hangs from column 5. */
+/* A gold glare along the top edge, like a horizon catching the sun. */
+.tt::before {
+  content: ""; position: absolute; left: 50%; translate: -50% 0; pointer-events: none;
+  top: 0; width: min(720px, 86vw); height: 2px; border-radius: 999px;
+  background: linear-gradient(90deg, transparent, var(--glare) 30% 70%, transparent);
+  box-shadow: 0 0 14px var(--glare), 0 0 34px rgba(253, 214, 129, 0.55);
+}
+
 .tt-frame { display: contents; }
 .tt-mark {
-  grid-column: 1 / 5; grid-row: 1; align-self: start;
-  display: grid; grid-template-columns: auto 1fr; column-gap: 12px; align-items: center;
+  grid-column: 1 / 13; grid-row: 1; justify-self: center;
+  display: grid; justify-items: center; row-gap: 10px;
   color: var(--dust); text-decoration: none; width: max-content;
 }
-.tt-mark__glyph { width: 32px; height: 32px; grid-row: 1 / 3; }
-.tt-mark__name { font-size: 1.0625rem; font-weight: 700; font-variation-settings: "wdth" 112; letter-spacing: -0.01em; }
+/* The tab hangs from the glare, the way Prosperity hangs its badge from the top edge. */
+.tt-mark__tab { display: grid; place-items: center; width: 132px; height: 46px; margin-bottom: 2px; border-radius: 0 0 28px 28px; backdrop-filter: blur(4px); }
+.tt-mark__glyph { width: 30px; height: 30px; }
+.tt-mark__name {
+  font-family: var(--display); font-weight: 600; text-transform: uppercase;
+  font-size: clamp(1.6rem, 1.3rem + 0.9vw, 2.3125rem); line-height: 1; letter-spacing: 0.62em; margin-right: -0.62em;
+}
+/* The edition sits dimmed after the name, as Prosperity dims its 04. */
+.tt-mark__ed { opacity: 0.4; }
 .tt-mark__what { font-size: var(--t-s); color: var(--muted); }
-.tt-mark:focus-visible { outline: 2px solid var(--dust); outline-offset: 6px; }
+.tt-mark:focus-visible { outline: 2px solid var(--dust); outline-offset: 6px; border-radius: 12px; }
 
-.tt-head { grid-column: 5 / 13; grid-row: 1; padding-bottom: clamp(24px, 4vh, 48px); }
+/* Prosperity's icon button, top right: the plain-list route. */
+.tt-menu {
+  position: absolute; top: 24px; right: var(--margin);
+  display: grid; place-items: center; width: 48px; height: 48px; border-radius: 14px;
+  color: var(--dust); backdrop-filter: blur(4px);
+  transition: translate 0.35s var(--settle), background-color 0.35s var(--settle);
+}
+.tt-menu svg { width: 20px; height: 20px; }
+.tt-menu:focus-visible { outline: 2px solid var(--dust); outline-offset: 3px; }
+
+.tt-head { grid-column: 2 / 12; grid-row: 2; padding: clamp(36px, 6vh, 64px) 0 clamp(36px, 6vh, 60px); text-align: center; }
 .tt-fact {
-  margin: 0 0 0 -0.04em;
-  font-size: var(--t-xl); line-height: 0.94; font-weight: 800;
-  font-variation-settings: "wdth" 112; letter-spacing: -0.035em;
-  text-wrap: balance; max-width: 14ch;
+  margin: 0 auto;
+  font-family: var(--display); font-size: var(--t-xl); line-height: 1; font-weight: 600;
+  text-transform: uppercase; text-wrap: balance; max-width: 30ch;
 }
-.tt-fact em { font-style: normal; color: var(--pepper); }
-.tt[data-layer="trader"] .tt-fact { max-width: 19ch; }
-.tt-fact .tt-osm { color: var(--osmium); }
+.tt-fact em {
+  display: block; font-style: normal;
+  background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.tt[data-layer="trader"] .tt-fact { max-width: 34ch; }
 .tt-lede {
-  margin: 20px 0 0; max-width: 44rem; color: var(--muted);
-  font-size: var(--t-body); line-height: 1.55;
+  margin: 24px auto 0; max-width: 750px; color: var(--dust);
+  font-size: clamp(1.0625rem, 0.98rem + 0.3vw, 1.25rem); font-weight: 500; line-height: 1.3;
+  text-wrap: pretty;
 }
-.tt-lede strong { color: var(--dust); font-weight: 600; }
+.tt-lede strong { font-weight: 700; }
+/* Prosperity's hero actions: a centred row of 48 px glass pills, the first in the primary blue. */
+.tt-cta { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; margin-top: 32px; }
+.tt-cta a {
+  display: inline-flex; align-items: center; min-height: 48px; padding: 12px 20px; border-radius: 40px;
+  color: var(--dust); text-decoration: none; font-size: 0.75rem; font-weight: 500; text-transform: uppercase;
+  transition: background-color 0.35s var(--settle), translate 0.35s var(--settle);
+}
+.tt-cta a.tt-cta__primary { background: var(--blue); }
+.tt-cta a:focus-visible { outline: 2px solid var(--dust); outline-offset: 3px; }
+@media (hover: hover) {
+  .tt-cta a:hover { translate: 0 -2px; background-color: rgba(1, 38, 73, 0.85); }
+  .tt-cta a.tt-cta__primary:hover { background-color: #0751e2; }
+}
+.tt:not([data-layer="ground"]) .tt-cta { display: none; }
 
-/* The section: the cut face of four recorded days. */
-.tt-section { grid-column: 1 / 13; margin: 0 calc(var(--margin) * -1); position: relative; }
+/* Cards: transparent over black with a hairline, as on Prosperity's About section. */
+/* The black underlay keeps the stars out from under the data. */
+.tt-card { border: 1px solid var(--line); border-radius: 15px; padding: 24px; background: rgba(0, 0, 0, 0.72); }
+.tt-card__title {
+  margin: 0 0 20px; width: max-content; max-width: 100%;
+  font-family: var(--display); font-size: var(--t-card); line-height: 1.1; font-weight: 600; text-transform: uppercase;
+  background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+/* The section: the cut face of four recorded days. Its inner margin matches frame() in ground.js. */
+.tt-section { grid-column: 1 / 13; position: relative; margin: 0; --margin: 28px; padding: 0; overflow: clip; scroll-margin-top: 16px; }
+/* On the ground layer the chart card names what the record shows. */
+.tt-section__head { padding: 24px var(--margin) 0; }
+.tt-section__head .tt-card__title { margin-bottom: 8px; }
+.tt-section__note { margin: 0; max-width: 46rem; font-size: 0.9375rem; line-height: 1.5; color: var(--muted); }
+.tt-section__note strong { color: var(--dust); font-weight: 600; }
+.tt:not([data-layer="ground"]) .tt-section__head { display: none; }
 .tt-plot {
   position: relative; height: clamp(340px, 50vh, 600px);
-  background:
-    linear-gradient(to bottom, transparent 0, transparent calc(100% - 1px), var(--line) calc(100% - 1px)),
-    var(--shelf);
+  background: linear-gradient(to bottom, transparent 0, transparent calc(100% - 1px), var(--line) calc(100% - 1px));
   touch-action: pan-y;
   cursor: crosshair;
   overflow: clip;
+}
+/* Viewfinder corners, as on Prosperity's video frames. */
+.tt-plot::after {
+  --c: rgba(255, 255, 255, 0.75);
+  content: ""; position: absolute; inset: 10px; pointer-events: none;
+  background:
+    linear-gradient(var(--c) 0 0) left top / 12px 2px, linear-gradient(var(--c) 0 0) left top / 2px 12px,
+    linear-gradient(var(--c) 0 0) right top / 12px 2px, linear-gradient(var(--c) 0 0) right top / 2px 12px,
+    linear-gradient(var(--c) 0 0) left bottom / 12px 2px, linear-gradient(var(--c) 0 0) left bottom / 2px 12px,
+    linear-gradient(var(--c) 0 0) right bottom / 12px 2px, linear-gradient(var(--c) 0 0) right bottom / 2px 12px;
+  background-repeat: no-repeat;
 }
 .tt-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .tt-loading {
@@ -100,7 +189,7 @@
 .tt-tag small { display: block; font-weight: 400; color: var(--muted); font-size: 0.75rem; }
 .tt-tag--pepper { color: var(--pepper); }
 .tt-tag--osmium { color: var(--osmium); }
-.tt-tag--trader { color: var(--dust); }
+.tt-tag--trader { color: #b2ccff; }
 
 .tt:not(.is-live) { visibility: hidden; }
 /* The probe is a 24 px wide strip centred on its line, so keyboard focus has a real box. */
@@ -109,21 +198,23 @@
   outline: none; opacity: 0; transition: opacity 0.3s var(--settle);
 }
 .tt.has-overview .tt-probe { opacity: 1; }
-.tt-probe__line { position: absolute; top: 0; bottom: 0; left: 11.5px; width: 1px; background: var(--dust); opacity: 0.55; }
+.tt-probe__line { position: absolute; top: 0; bottom: 0; left: 11.5px; width: 1px; background: linear-gradient(to bottom, transparent, rgba(178, 204, 255, 0.7) 12%, rgba(178, 204, 255, 0.7) 88%, transparent); }
+/* The handle is one of Prosperity's graph nodes: a gradient dot in a white ring with a soft halo. */
 .tt-probe__handle {
   position: absolute; bottom: 14px; left: 3px; width: 18px; height: 18px; border-radius: 999px;
-  background: var(--basalt); border: 2px solid var(--dust); cursor: ew-resize;
+  background: radial-gradient(circle at 35% 35%, #b2ccff, #6095fb 80%); border: 1.5px solid #fff; cursor: ew-resize;
+  box-shadow: 0 0 0 6px rgba(96, 149, 251, 0.25), 0 0 14px rgba(0, 225, 255, 0.55);
   transition: scale 0.25s var(--settle);
 }
 .tt-probe__time {
-  position: absolute; bottom: 15px; left: 28px; white-space: nowrap;
-  font-size: 0.75rem; font-weight: 600; color: var(--dust);
-  background: var(--basalt); padding: 3px 7px;
+  position: absolute; bottom: 13px; left: 30px; white-space: nowrap;
+  font-size: 0.75rem; font-weight: 500; color: var(--dust); text-transform: uppercase; letter-spacing: 0.02em;
+  border-radius: 999px; padding: 4px 12px; backdrop-filter: blur(4px);
 }
-.tt-probe.is-flipped .tt-probe__time { left: auto; right: 28px; }
-.tt-probe:focus-visible .tt-probe__line { opacity: 1; width: 2px; left: 11px; }
+.tt-probe.is-flipped .tt-probe__time { left: auto; right: 30px; }
+.tt-probe:focus-visible .tt-probe__line { width: 2px; left: 11px; }
 .tt-probe:focus-visible .tt-probe__handle { outline: 2px solid var(--dust); outline-offset: 3px; scale: 1.15; }
-.tt-probe.is-ghost .tt-probe__line { opacity: 0.3; }
+.tt-probe.is-ghost .tt-probe__line { opacity: 0.4; }
 
 /* Day labels sit under their stretch of the section. */
 .tt-days { position: relative; height: 58px; }
@@ -131,17 +222,18 @@
   position: absolute; top: 10px; translate: -50% 0;
   display: grid; justify-items: center; row-gap: 2px;
   min-height: 44px; padding: 4px 10px; background: none; border: 0; cursor: pointer;
-  color: var(--dust); font: inherit; font-size: var(--t-s); font-weight: 600; white-space: nowrap;
+  color: var(--dust); font: inherit; font-family: var(--display); font-size: 0.9375rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap;
   transition: opacity 0.5s var(--settle), translate 0.9s cubic-bezier(0.87, 0, 0.13, 1);
 }
-.tt-day small { font-weight: 400; color: var(--muted); font-size: 0.75rem; }
-.tt-day span, .tt-legend__name, .tt-back span {
-  background: linear-gradient(var(--pepper) 0 0) left bottom / 0% 2px no-repeat;
+.tt-day small { font-family: "Figtree", system-ui, sans-serif; font-weight: 400; color: var(--muted); font-size: 0.75rem; text-transform: none; letter-spacing: 0; }
+.tt-day span, .tt-back span {
+  background: var(--grad) left bottom / 0% 2px no-repeat;
   padding-bottom: 2px;
   transition: background-size 0.45s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 .tt-day[aria-pressed="true"] span { background-size: 100% 2px; }
-.tt-day:focus-visible, .tt-legend a:focus-visible, .tt-back:focus-visible { outline: 2px solid var(--dust); outline-offset: 4px; }
+.tt-day:focus-visible, .tt-back:focus-visible { outline: 2px solid var(--dust); outline-offset: 4px; border-radius: 10px; }
+.tt-legend a:focus-visible { outline: 2px solid var(--dust); outline-offset: 3px; }
 .tt-day:focus-visible span, .tt-back:focus-visible span { background-size: 100% 2px; }
 .tt-day.is-away { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.5s var(--settle), visibility 0s 0.5s, translate 0.9s cubic-bezier(0.87, 0, 0.13, 1); }
 .tt-back {
@@ -151,48 +243,51 @@
 }
 .tt-back[hidden] { display: none; }
 
-/* Under the section: legend on column 1, readout from column 5. */
-.tt-under { grid-column: 1 / 13; display: grid; grid-template-columns: subgrid; padding: 28px 0 56px; row-gap: 40px; }
-.tt-legend { grid-column: 1 / 4; display: grid; align-content: start; row-gap: 4px; }
+/* Under the section: legend on columns 1 to 3, cards from column 4. */
+.tt-under { grid-column: 1 / 13; display: grid; grid-template-columns: subgrid; padding: 24px 0 120px; row-gap: 24px; }
+.tt-legend { grid-column: 1 / 4; display: grid; align-content: start; row-gap: 12px; }
+/* Layers are glass buttons; the current one takes the primary IMC blue. */
 .tt-legend a {
-  display: grid; grid-template-columns: 20px 1fr; column-gap: 12px; align-items: baseline;
-  padding: 10px 0; color: var(--dust); text-decoration: none; min-height: 44px;
+  display: grid; grid-template-columns: 20px 1fr; column-gap: 14px; align-items: baseline;
+  padding: 14px 20px; color: var(--dust); text-decoration: none; min-height: 48px; border-radius: 15px;
+  transition: background-color 0.35s var(--settle), translate 0.35s var(--settle);
 }
-.tt-legend__name { font-weight: 600; font-size: 1.0625rem; width: max-content; }
+.tt-legend__name { font-family: var(--display); font-weight: 600; font-size: 1.0625rem; text-transform: uppercase; letter-spacing: 0.04em; width: max-content; }
 .tt-legend__what { grid-column: 2; font-size: var(--t-s); color: var(--muted); }
-.tt-legend a[aria-current="page"] .tt-legend__name { background-size: 100% 2px; }
+.tt-legend a[aria-current="page"] { background: var(--blue); }
+.tt-legend a[aria-current="page"] .tt-legend__what { color: var(--soft); }
 .tt-key { width: 20px; height: 12px; align-self: center; grid-row: 1 / 3; }
 .tt-key--ground { background: linear-gradient(to top right, transparent 46%, var(--pepper) 47% 60%, transparent 61%), linear-gradient(to top, transparent 2px, var(--osmium) 2px 5px, transparent 5px); }
-.tt-key--trader { background: linear-gradient(to bottom, transparent 5px, var(--dust) 5px 7px, transparent 7px); }
-.tt-key--notes { border: 1.5px solid var(--muted); border-left-width: 5px; }
+.tt-key--trader { background: linear-gradient(to bottom, transparent 5px, #b2ccff 5px 7px, transparent 7px); }
+.tt-key--notes { border: 1.5px solid var(--muted); border-radius: 3px; }
 .tt-key--index { background: repeating-linear-gradient(to bottom, var(--muted) 0 1.5px, transparent 1.5px 4px); }
 .tt-mark__glyph path, .tt-mark__glyph circle, .tt-key { transition: translate 0.45s var(--settle); }
 .tt-mark:focus-visible .tt-mark__glyph path, .tt-mark:focus-visible .tt-mark__glyph circle { translate: 0 -6px; }
 @media (hover: hover) {
-  .tt-day:hover span, .tt-legend a:hover .tt-legend__name, .tt-back:hover span { background-size: 100% 2px; }
-  .tt-day[aria-pressed="true"]:hover span, .tt-legend a[aria-current="page"]:hover .tt-legend__name { background-size: 100% 4px; }
+  .tt-day:hover span, .tt-back:hover span { background-size: 100% 2px; }
+  .tt-day[aria-pressed="true"]:hover span { background-size: 100% 4px; }
+  .tt-legend a:not([aria-current="page"]):hover, .tt-menu:hover { background-color: rgba(1, 38, 73, 0.85); translate: 0 -2px; }
   .tt-legend a:hover .tt-key { translate: 4px 0; }
   .tt-mark:hover .tt-mark__glyph path, .tt-mark:hover .tt-mark__glyph circle { translate: 0 -6px; }
   .tt-probe__handle:hover { scale: 1.15; }
 }
 
-.tt-core { grid-column: 5 / 13; min-width: 0; }
+.tt-core { grid-column: 4 / 13; min-width: 0; }
 .tt[data-layer="trader"] .tt-core { grid-column: 4 / 8; }
-.tt-core__when { margin: 0 0 18px; font-size: var(--t-s); font-weight: 600; color: var(--muted); letter-spacing: 0.01em; }
-.tt-core__when b { color: var(--dust); font-weight: 600; }
+.tt-core__when b { font-weight: inherit; }
 .tt-core__goods { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--gutter); row-gap: 32px; }
 .tt[data-layer="trader"] .tt-core__goods { grid-template-columns: 1fr; }
 .tt-good__name { margin: 0; font-size: var(--t-s); font-weight: 600; }
 .tt-good--pepper .tt-good__name { color: var(--pepper); }
 .tt-good--osmium .tt-good__name { color: var(--osmium); }
-.tt-good__mid { margin: 4px 0 2px; font-size: var(--t-l); font-weight: 700; font-variation-settings: "wdth" 112; letter-spacing: -0.02em; line-height: 1.05; }
+.tt-good__mid { margin: 4px 0 2px; font-family: var(--display); font-size: var(--t-l); font-weight: 600; letter-spacing: 0.01em; line-height: 1.05; }
 .tt-good__note { margin: 0 0 14px; font-size: var(--t-s); color: var(--muted); }
 .tt-ladder { width: 100%; border-collapse: collapse; font-size: var(--t-s); }
 .tt-ladder th { text-align: left; font-weight: 400; color: var(--muted); padding: 3px 12px 3px 0; width: 4.5em; }
 .tt-ladder td { padding: 3px 0; }
 .tt-ladder td.tt-px { width: 6.5em; font-weight: 600; }
 .tt-ladder td.tt-none { color: var(--muted); }
-.tt-ladder .tt-bar { display: inline-block; height: 8px; vertical-align: middle; margin-right: 8px; background: currentColor; opacity: 0.85; }
+.tt-ladder .tt-bar { display: inline-block; height: 8px; border-radius: 999px; vertical-align: middle; margin-right: 8px; background: currentColor; opacity: 0.85; }
 .tt-good--pepper .tt-ladder .tt-bar { color: var(--pepper); }
 .tt-good--osmium .tt-ladder .tt-bar { color: var(--osmium); }
 .tt-ladder tr.is-bid .tt-bar { opacity: 0.45; }
@@ -206,62 +301,64 @@
 .tt-controls { display: grid; row-gap: 18px; }
 .tt-choice { border: 0; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
 .tt-choice legend { padding: 0; margin-bottom: 8px; font-size: var(--t-s); color: var(--muted); }
+/* Prosperity's button: 48 px glass pill, 12 px uppercase label; pressed takes the primary blue. */
 .tt-choice button {
-  position: relative; isolation: isolate; overflow: clip;
-  min-height: 44px; padding: 10px 16px; border: 1px solid var(--line); background: none;
-  color: var(--dust); font: inherit; font-size: var(--t-s); font-weight: 600; cursor: pointer;
-  transition: color 0.35s var(--settle), border-color 0.35s var(--settle), translate 0.35s var(--settle);
+  min-height: 48px; padding: 12px 20px; border-radius: 40px;
+  color: var(--dust); font: inherit; font-size: 0.75rem; font-weight: 500; text-transform: uppercase; cursor: pointer;
+  transition: background-color 0.35s var(--settle), translate 0.35s var(--settle);
 }
-.tt-choice button::before {
-  content: ""; position: absolute; inset: 0; z-index: -1; background: var(--dust);
-  clip-path: inset(100% 0 0 0); transition: clip-path 0.45s var(--settle);
-}
-.tt-choice button[aria-pressed="true"] { color: var(--basalt); border-color: var(--dust); }
-.tt-choice button[aria-pressed="true"]::before { clip-path: inset(0 0 0 0); }
+.tt-choice button[aria-pressed="true"] { background: var(--blue); }
 .tt-choice button:focus-visible { outline: 2px solid var(--dust); outline-offset: 3px; }
 @media (hover: hover) {
-  .tt-choice button:not([aria-pressed="true"]):hover { border-color: rgba(231, 233, 236, 0.4); }
-  .tt-choice button:not([aria-pressed="true"]):hover::before { clip-path: inset(78% 0 0 0); }
-  .tt-choice button[aria-pressed="true"]:hover { translate: 0 -2px; }
+  .tt-choice button:not([aria-pressed="true"]):hover { background-color: rgba(1, 38, 73, 0.85); translate: 0 -2px; }
 }
-.tt-choice button:active::before { clip-path: inset(0 0 0 0); }
-.tt-choice button:active { color: var(--basalt); }
+.tt-choice button:active { background: var(--blue); }
 
-.tt-results { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px var(--gutter); margin: 32px 0 0; }
+.tt-results { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px var(--gutter); margin: 28px 0 0; padding-top: 24px; border-top: 1px solid var(--line); }
 .tt-results div { min-width: 0; }
 .tt-results dt { font-size: var(--t-s); color: var(--muted); }
-.tt-results dd { margin: 2px 0 0; font-size: var(--t-m); font-weight: 600; }
+.tt-results dd { margin: 2px 0 0; font-family: var(--display); font-size: 1.5rem; font-weight: 600; letter-spacing: 0.01em; }
 .tt-results .is-pepper dd { color: var(--pepper); }
 .tt-results .is-osmium dd { color: var(--osmium); }
 .tt-trader.is-busy .tt-results { opacity: 0.4; transition: opacity 0.3s; }
-.tt-caveat { margin: 28px 0 0; font-size: var(--t-s); line-height: 1.55; color: var(--muted); max-width: 40rem; }
+.tt-caveat { margin: 24px 0 0; font-size: var(--t-s); line-height: 1.55; color: var(--muted); max-width: 40rem; }
 
 /* Notes and index: the section becomes a strip you can still read and click. */
 .tt[data-layer="notes"] .tt-plot, .tt[data-layer="index"] .tt-plot { height: 150px; }
-.tt[data-layer="notes"] .tt-under, .tt[data-layer="index"] .tt-under { padding-bottom: 8px; }
+.tt[data-layer="notes"] .tt-under, .tt[data-layer="index"] .tt-under { padding-bottom: 24px; }
 .tt[data-layer="notes"] .tt-legend, .tt[data-layer="index"] .tt-legend {
-  grid-column: 1 / 13; grid-template-columns: repeat(4, max-content); column-gap: 56px;
+  grid-column: 1 / 13; grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: var(--gutter);
 }
 
 @media (max-width: 900px) {
-  .tt { grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: 16px; --margin: 16px; padding-top: 18px; }
-  .tt-mark { grid-column: 1 / 5; }
-  .tt-head { grid-column: 1 / 5; grid-row: 2; padding: 22px 0 22px; }
-  .tt-fact { font-size: clamp(2.3rem, 1rem + 7.4vw, 3.4rem); max-width: 12ch; }
-  .tt-lede { margin-top: 14px; }
-  .tt-section { grid-column: 1 / 5; }
+  .tt { grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: 16px; --margin: 16px; }
+  .tt-mark { grid-column: 1 / 5; row-gap: 8px; }
+  .tt-mark__tab { width: 104px; height: 38px; }
+  .tt-mark__name { font-size: 1.5rem; letter-spacing: 0.34em; margin-right: -0.34em; }
+  .tt-menu { top: 12px; width: 44px; height: 44px; }
+  .tt-head { grid-column: 1 / 5; padding: 28px 0 28px; }
+  .tt-fact { max-width: 20ch; }
+  .tt-lede { margin-top: 16px; }
+  .tt-cta { gap: 10px; margin-top: 24px; }
+  .tt-cta a { padding: 12px 16px; }
+  .tt-section { grid-column: 1 / 5; --margin: 12px; }
+  .tt-card { padding: 16px; }
+  .tt-section.tt-card { padding: 0; }
   .tt-plot { height: 300px; }
+  .tt-plot::after { display: none; }
   .tt-tag { font-size: 0.8125rem; }
-  .tt-under { grid-column: 1 / 5; padding-bottom: 104px; row-gap: 28px; }
+  .tt-under { grid-column: 1 / 5; padding-bottom: 104px; row-gap: 16px; }
   .tt-legend {
     position: fixed; z-index: 50; left: 0; right: 0; bottom: 0;
-    grid-template-columns: repeat(4, 1fr); column-gap: 0; row-gap: 0;
-    background: var(--basalt); border-top: 1px solid var(--line); padding: 0 8px env(safe-area-inset-bottom);
+    grid-template-columns: repeat(4, 1fr); column-gap: 4px; row-gap: 0;
+    background: rgba(0, 0, 0, 0.82); backdrop-filter: blur(12px); border-top: 1px solid var(--line); padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
   }
-  .tt[data-layer] .tt-legend { grid-template-columns: repeat(4, 1fr); column-gap: 0; }
-  .tt-legend a { grid-template-columns: 1fr; justify-items: center; row-gap: 6px; padding: 10px 4px 12px; }
+  .tt[data-layer] .tt-legend { grid-template-columns: repeat(4, 1fr); column-gap: 4px; }
+  .tt-legend a { grid-template-columns: 1fr; justify-items: center; row-gap: 6px; padding: 8px 4px 10px; border-radius: 14px; background: none; box-shadow: none; }
+  .tt-legend a::after { opacity: 0; }
+  .tt-legend a[aria-current="page"]::after { opacity: 1; }
   .tt-key { grid-row: auto; }
-  .tt-legend__name { font-size: 0.8125rem; }
+  .tt-legend__name { font-size: 0.8125rem; letter-spacing: 0.02em; }
   .tt-legend__what { display: none; }
   .tt-core, .tt[data-layer="trader"] .tt-core { grid-column: 1 / 5; }
   .tt-core__goods { grid-template-columns: 1fr; }

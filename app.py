@@ -27,7 +27,7 @@ load_dotenv()
 PROJECT_ROOT = Path(__file__).resolve().parent
 FAVICON = PROJECT_ROOT / "assets" / "logo.png"
 TITLES = {
-    "ground": "TradeTell | Intara market record",
+    "ground": "TradeTell | Study IMC Prosperity 4",
     "trader": "TradeTell | Replay a Trader",
     "notes": "TradeTell | Field notes",
     "index": "TradeTell | Index",
@@ -323,3 +323,20 @@ if layer == "notes":
     render_notes()
 elif layer == "index":
     render_index()
+
+# Streamlit hides <footer> elements, so the band is a div with the contentinfo role.
+st.html(
+    """
+    <div class="tt-foot" role="contentinfo">
+      <div class="tt-foot__in">
+        <span class="tt-foot__mark">TradeTell</span>
+        <nav class="tt-foot__links" aria-label="More">
+          <a href="https://github.com/Builder106/imc-prosperity">Source on GitHub</a>
+          <a href="https://prosperity.imc.com/">IMC Prosperity</a>
+          <a href="?layer=index">Index</a>
+        </nav>
+        <p class="tt-foot__note">A study tool built on the Prosperity 4 data capsules. Not made by or affiliated with IMC.</p>
+      </div>
+    </div>
+    """
+)

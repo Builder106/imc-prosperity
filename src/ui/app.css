@@ -1,79 +1,123 @@
 /* Streamlit's page shell, quieted so the section is the whole interface. */
 :root {
-  --basalt: #0d0e10;
-  --shelf: #16181b;
-  --dust: #e7e9ec;
-  --muted: #959ca6;
-  --line: rgba(231, 233, 236, 0.12);
-  --osmium: #8ea9c6;
-  --pepper: #ee5a36;
+  --space: #000;
+  --band: #000e1b;
+  --navy: #012649;
+  --dust: #fff;
+  --muted: #9fb0c8;
+  --line: rgba(255, 255, 255, 0.1);
+  --osmium: #8fd3e8;
+  --pepper: #ff7a3d;
+  --glass: rgba(0, 25, 49, 0.6);
+  --blue: rgba(7, 81, 226, 0.6);
+  --lift: 0 12px 7px rgba(0, 9, 32, 0.3);
+  --ring: linear-gradient(110deg, rgba(255, 255, 255, 0.3) 4.41%, rgba(255, 255, 255, 0.05) 40.87%, rgba(255, 255, 255, 0.05) 57.12%, rgba(255, 255, 255, 0.3) 95.78%);
+  --grad: linear-gradient(98deg, #b2ccff 6.13%, #6095fb 97.75%, #b2ccff 119.64%);
+  --display: "Oswald", Impact, sans-serif;
   --margin: 40px;
   --gutter: 24px;
-  --col: calc((100vw - 2 * var(--margin) - 11 * var(--gutter)) / 12);
-  --hang: calc(var(--margin) + 4 * (var(--col) + var(--gutter)));
+  /* The section's 1184 px column, centred; the notes and index hang from its fourth column, like the readout card. */
+  --page: min(100vw, 1184px + 2 * var(--margin));
+  --offset: calc((100vw - var(--page)) / 2);
+  --col: calc((var(--page) - 2 * var(--margin) - 11 * var(--gutter)) / 12);
+  --hang: calc(var(--offset) + var(--margin) + 3 * (var(--col) + var(--gutter)));
 }
-html, body, .stApp { background: var(--basalt); }
-::selection { background: var(--pepper); color: var(--basalt); }
+body { background: var(--space); }
+html, .stApp { background: var(--space); }
+/* Deep space behind the hero only, as on Prosperity: stars over black that fade before the content. It sits on
+   the block container because Streamlit scrolls inside the app, so a background on .stApp would stay put. */
+[data-testid="stMainBlockContainer"] { background: url("app/static/stars.svg") top center / max(1920px, 100vw) auto no-repeat; }
+::selection { background: #6095fb; color: #000; }
 [data-testid="stHeader"], [data-testid="stToolbar"], [data-testid="stDecoration"],
 [data-testid="stSidebar"], [data-testid="stSidebarCollapsedControl"], footer { display: none !important; }
 [data-testid="stMainBlockContainer"], .block-container { padding: 0 !important; max-width: none !important; }
 [data-testid="stMain"] [data-testid="stVerticalBlock"] { gap: 0; }
 .stElementContainer:has(> .stHtml style:only-child) { display: none; }
 
-/* Field notes and the index hang from the readout's column, like the rest of the system. */
 .st-key-notes, .st-key-index {
-  padding: 0 var(--margin) 96px var(--hang);
-  font-family: "Archivo", system-ui, sans-serif;
+  padding: 0 calc(var(--offset) + var(--margin)) 120px var(--hang);
+  font-family: "Figtree", system-ui, sans-serif;
   color: var(--dust);
 }
-.st-key-notes [data-testid="stVerticalBlock"], .st-key-index [data-testid="stVerticalBlock"] { gap: 16px; }
-.notes-start { margin: 8px 0 4px; font-size: 0.875rem; color: var(--muted); }
+[data-testid="stMain"] :is(.st-key-notes, .st-key-index),
+[data-testid="stMain"] :is(.st-key-notes, .st-key-index) [data-testid="stVerticalBlock"] { gap: 12px; }
+.notes-start {
+  margin: 8px 0 4px; width: max-content; max-width: 100%;
+  font-family: var(--display); font-size: 1.5rem; font-weight: 600; text-transform: uppercase; line-height: 1.1;
+  background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent;
+}
 
+/* Suggested questions read like Prosperity's FAQ: one row each, a hairline under it, a plus at the end. */
 .st-key-notes .stButton { width: 100%; }
 .st-key-notes .st-key-clear .stButton { width: auto; }
+.st-key-notes [class*="st-key-example_"] + [class*="st-key-example_"] { margin-top: -12px; }
 .st-key-notes .stButton > button {
-  position: relative; isolation: isolate; overflow: clip;
-  width: 100%; min-height: 56px; justify-content: flex-start; text-align: left;
-  padding: 14px 18px; border: 1px solid var(--line); border-radius: 0; background: none;
+  position: relative; width: 100%; min-height: 56px; justify-content: flex-start; text-align: left;
+  padding: 16px 44px 16px 0; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: none;
   color: var(--dust); font-size: 1.0625rem; font-weight: 500; line-height: 1.4;
-  transition: color 0.35s cubic-bezier(0.215, 0.61, 0.355, 1), border-color 0.35s;
+  transition: color 0.3s;
 }
-.st-key-notes .stButton > button::before {
-  content: ""; position: absolute; inset: 0; z-index: -1; background: var(--dust);
-  clip-path: inset(100% 0 0 0); transition: clip-path 0.45s cubic-bezier(0.215, 0.61, 0.355, 1);
+.st-key-notes .stButton > button::after {
+  content: "+" / ""; position: absolute; right: 8px; top: 50%; translate: 0 -50%;
+  font-size: 1.5rem; font-weight: 300; line-height: 1; color: #b2ccff;
+  transition: rotate 0.35s cubic-bezier(0.215, 0.61, 0.355, 1);
 }
 @media (hover: hover) {
-  .st-key-notes .stButton > button:hover { color: var(--basalt); border-color: var(--dust); }
-  .st-key-notes .stButton > button:hover::before { clip-path: inset(0 0 0 0); }
+  .st-key-notes .stButton > button:hover { color: #b2ccff; background: none; border-color: var(--line); }
+  .st-key-notes .stButton > button:hover::after { rotate: 90deg; }
 }
-.st-key-notes .stButton > button:focus-visible { outline: 2px solid var(--dust); outline-offset: 3px; color: var(--basalt); }
-.st-key-notes .stButton > button:focus-visible::before, .st-key-notes .stButton > button:active::before { clip-path: inset(0 0 0 0); }
-.st-key-notes .stButton > button:active { color: var(--basalt); }
-.st-key-notes .stButton > button p { font-size: inherit; }
-.st-key-notes .st-key-clear .stButton > button { min-height: 44px; width: auto; font-size: 0.875rem; color: var(--muted); }
+.st-key-notes .stButton > button:focus-visible { outline: 2px solid var(--dust); outline-offset: 3px; }
+.st-key-notes .stButton > button > div { justify-content: flex-start; width: 100%; }
+.st-key-notes .stButton > button p { font-size: inherit; text-align: left; }
+
+/* Clear is a glass pill with Prosperity's gradient ring. */
+.st-key-notes .st-key-clear .stButton > button {
+  min-height: 48px; width: auto; padding: 12px 20px; border: 0; border-radius: 40px;
+  background: var(--glass); box-shadow: var(--lift);
+  font-size: 0.75rem; font-weight: 500; text-transform: uppercase; color: var(--dust);
+}
+.st-key-notes .st-key-clear .stButton > button::after,
+.st-key-notes [data-testid="stChatInput"]::after {
+  content: ""; inset: 0; translate: none; padding: 1px; border-radius: inherit; pointer-events: none;
+  position: absolute; background: var(--ring);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box exclude, linear-gradient(#fff 0 0);
+}
+@media (hover: hover) {
+  .st-key-notes .st-key-clear .stButton > button:hover { background: rgba(1, 38, 73, 0.85); color: var(--dust); }
+  .st-key-notes .st-key-clear .stButton > button:hover::after { rotate: none; }
+}
 
 .st-key-notes [data-testid="stChatMessage"] {
   background: none; padding: 20px 0; border-top: 1px solid var(--line); border-radius: 0; gap: 16px;
 }
 .st-key-notes [data-testid="stChatMessage"] p, .st-key-notes [data-testid="stChatMessage"] li { font-size: 1.0625rem; line-height: 1.6; }
-.st-key-notes [data-testid="stChatInput"] { border-radius: 0; }
+.st-key-notes [data-testid="stChatInput"] { position: relative; border-radius: 15px; background: var(--glass); box-shadow: var(--lift); }
+.st-key-notes [data-testid="stChatInput"] > div { background: transparent; border-color: transparent; }
+/* Streamlit's default avatars are red and orange, which would read as the pepper root. */
+.st-key-notes [data-testid="stChatMessageAvatarUser"] { background: var(--navy); color: var(--dust); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25); }
+.st-key-notes [data-testid="stChatMessageAvatarAssistant"] { background: #0751e2; color: var(--dust); }
 .st-key-notes [data-testid="stChatInput"] textarea { font-size: 1.0625rem; }
-.st-key-notes [data-testid="stChatInputSubmitButton"] { transition: background 0.3s, translate 0.3s; }
-@media (hover: hover) { .st-key-notes [data-testid="stChatInputSubmitButton"]:hover { background: var(--pepper); translate: 0 -2px; } }
+.st-key-notes [data-testid="stChatInputSubmitButton"] { background: var(--blue); color: var(--dust); transition: background 0.3s, translate 0.3s; }
+@media (hover: hover) { .st-key-notes [data-testid="stChatInputSubmitButton"]:hover { background: #0751e2; translate: 0 -2px; } }
 
-/* Sources read like specimen labels: what it is, where it came from, then the passage. */
-.st-key-notes [data-testid="stExpander"] details { border: 0; border-left: 4px solid var(--muted); border-radius: 0; }
+/* Sources are cards: transparent, hairline, 15 px corners. */
+.st-key-notes [data-testid="stExpander"] details { border: 1px solid var(--line); border-radius: 15px; background: none; }
 .st-key-notes [data-testid="stExpander"] summary { font-weight: 600; }
 .specimen { margin: 18px 0 6px; }
 .specimen b { display: block; font-size: 0.9375rem; }
 .specimen span { font-size: 0.8125rem; color: var(--muted); }
 
-/* Index: plain tables and links. */
-.ix h2 { margin: 40px 0 12px; font-size: 1.25rem; font-weight: 700; font-variation-settings: "wdth" 112; letter-spacing: -0.01em; }
+/* Index: plain tables and links under gradient card headings. */
+.ix h2 {
+  margin: 40px 0 12px; font-family: var(--display); font-size: 1.5rem; font-weight: 600; text-transform: uppercase; line-height: 1.1;
+  background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; width: max-content; max-width: 100%;
+}
 .ix h2:first-child { margin-top: 8px; }
 .ix p, .ix li { font-size: 1.0625rem; line-height: 1.6; color: var(--dust); max-width: 44rem; }
 .ix .muted { color: var(--muted); }
-.ix a { color: var(--dust); text-decoration: underline; text-decoration-color: var(--pepper); text-decoration-thickness: 2px; text-underline-offset: 0.2em; }
+.ix a { color: var(--dust); text-decoration: underline; text-decoration-color: #6095fb; text-decoration-thickness: 2px; text-underline-offset: 0.2em; }
 .ix a:hover { text-decoration-thickness: 4px; }
 .ix a { display: inline-block; padding: 4px 0; }
 .ix a:focus-visible { outline: 2px solid var(--dust); outline-offset: 3px; }
@@ -84,12 +128,26 @@ html, body, .stApp { background: var(--basalt); }
 .ix .osmium { color: var(--osmium); }
 .ix ul { padding-left: 1.1em; }
 
+/* Footer: Prosperity's navy band, stacked uppercase links, a quiet line at the bottom. */
+.tt-foot { background: var(--navy); color: var(--dust); font-family: "Figtree", system-ui, sans-serif; padding: 40px 0; }
+.tt-foot__in { max-width: calc(1184px + 2 * var(--margin)); margin: 0 auto; padding: 0 var(--margin); display: grid; row-gap: 32px; }
+.tt-foot__mark { font-family: var(--display); font-weight: 600; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 0.3em; }
+.tt-foot__links { display: grid; row-gap: 12px; justify-items: start; }
+.tt-foot__links a {
+  font-family: var(--display); font-weight: 600; font-size: 1.125rem; text-transform: uppercase; color: var(--dust); text-decoration: none;
+  background: var(--grad) left bottom / 0% 2px no-repeat; padding-bottom: 2px; transition: background-size 0.45s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+.tt-foot__links a:hover, .tt-foot__links a:focus-visible { background-size: 100% 2px; }
+.tt-foot__links a:focus-visible { outline: 2px solid var(--dust); outline-offset: 4px; }
+.tt-foot__note { margin: 0; padding-top: 24px; border-top: 1px solid rgba(255, 255, 255, 0.15); font-size: 0.75rem; color: rgba(255, 255, 255, 0.75); text-align: center; }
+
 @media (max-width: 900px) {
   :root { --margin: 16px; }
-  .st-key-notes, .st-key-index { padding: 0 var(--margin) 120px; }
+  .st-key-notes, .st-key-index { padding: 0 var(--margin) 48px; }
   .ix table { font-size: 0.8125rem; }
   .ix th, .ix td { padding-right: 8px; }
+  .tt-foot { padding: 32px 0 calc(104px + env(safe-area-inset-bottom)); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .st-key-notes .stButton > button, .st-key-notes .stButton > button::before { transition: none; }
+  .st-key-notes .stButton > button, .st-key-notes .stButton > button::after, .tt-foot__links a { transition: none; }
 }

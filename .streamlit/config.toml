@@ -1,20 +1,17 @@
 [theme]
 base = "dark"
-primaryColor = "#EE5A36"
-backgroundColor = "#0D0E10"
-secondaryBackgroundColor = "#16181B"
-textColor = "#E7E9EC"
-borderColor = "#2A2D31"
-font = "Archivo, sans-serif"
-headingFont = "Archivo, sans-serif"
-baseRadius = "none"
-linkColor = "#E7E9EC"
-
-[[theme.fontFaces]]
-family = "Archivo"
-url = "app/static/fonts/archivo-var.woff2"
-weight = "100 900"
-style = "normal"
+primaryColor = "#6095FB"
+backgroundColor = "#000E1B"
+secondaryBackgroundColor = "#061A30"
+textColor = "#F2F6FF"
+borderColor = "#1B2C42"
+# Prosperity pairs Oswald headlines with Mark Pro; Figtree is the open stand-in for Mark Pro.
+# Streamlit accepts one family per source URL, so each font names its own.
+font = "Figtree:https://fonts.googleapis.com/css2?family=Figtree:wght@300..800&display=swap"
+headingFont = "Oswald:https://fonts.googleapis.com/css2?family=Oswald:wght@500..700&display=swap"
+baseRadius = "large"
+buttonRadius = "full"
+linkColor = "#B2CCFF"
 
 [ui]
 hideTopBar = true

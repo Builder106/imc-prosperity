@@ -7,10 +7,12 @@ const DAYS = [-2, -1, 0, 1];
 const TICKS = 10000;
 const SPAN = DAYS.length * TICKS;
 const GOODS = [
-  { id: "INTARIAN_PEPPER_ROOT", key: "pepper", name: "Intarian Pepper Root", color: "#ee5a36" },
-  { id: "ASH_COATED_OSMIUM", key: "osmium", name: "Ash-Coated Osmium", color: "#8ea9c6" },
+  { id: "INTARIAN_PEPPER_ROOT", key: "pepper", name: "Intarian Pepper Root", color: "#ff7a3d", rgb: "255,122,61" },
+  { id: "ASH_COATED_OSMIUM", key: "osmium", name: "Ash-Coated Osmium", color: "#8fd3e8", rgb: "143,211,232" },
 ];
-const COLORS = { dust: "#e7e9ec", muted: "#959ca6", shelf: "#16181b", basalt: "#0d0e10" };
+const COLORS = { dust: "#ffffff", muted: "#9fb0c8" };
+// Prosperity's line graph: a pale-to-bright blue stroke with a cyan glow over a navy area fill.
+const PROSPERITY = { stroke: ["#b2ccff", "#6095fb", "#b2ccff"], glow: "rgba(0,225,255,0.85)", fill: ["rgba(10,44,96,0.32)", "rgba(7,20,46,0.16)", "rgba(0,0,0,0)"] };
 const MATCH_LABELS = { worse: "Beyond my quote", all: "At or beyond", none: "Never" };
 const LEVELS = [
   ["Ask 3", 10, 11, "ask"], ["Ask 2", 8, 9, "ask"], ["Ask 1", 6, 7, "ask"],
@@ -114,6 +116,7 @@ function createSection(component) {
   const el = $(".tt");
   const refs = {
     fact: $(".tt-fact"), lede: $(".tt-lede"), caption: $("#tt-section-caption"),
+    sectionTitle: $(".tt-section__title"), sectionNote: $(".tt-section__note"),
     plot: $(".tt-plot"), canvas: $(".tt-canvas"), yaxis: $(".tt-yaxis"), tags: $(".tt-tags"),
     probe: $(".tt-probe"), probeTime: $(".tt-probe__time"), days: $(".tt-days"),
     when: $(".tt-core__when"), goods: $(".tt-core__goods"), legend: $(".tt-legend"),
@@ -230,7 +233,8 @@ function createSection(component) {
   const strip = () => st.layer === "notes" || st.layer === "index";
   function frame() {
     const mobile = st.w < 900;
-    const margin = mobile ? 16 : 40;
+    // The plot sits inside a panel; this inner margin matches --margin on .tt-section.
+    const margin = mobile ? 12 : 28;
     return { L: margin + (mobile ? 50 : 64), R: st.w - margin, T: mobile ? 48 : 60, B: st.h - (mobile ? 44 : 52) };
   }
 
@@ -314,11 +318,7 @@ function createSection(component) {
     return cols;
   }
 
-  function drawLine(cols, color, width, alpha, limitX) {
-    ctx.globalAlpha = alpha;
-    ctx.strokeStyle = color;
-    ctx.lineWidth = width;
-    ctx.lineJoin = "round";
+  function tracePath(cols, limitX) {
     ctx.beginPath();
     let pen = false;
     for (const c of cols) {
@@ -326,8 +326,50 @@ function createSection(component) {
       if (pen) ctx.lineTo(c.x, c.mid); else ctx.moveTo(c.x, c.mid);
       pen = true;
     }
+  }
+
+  function drawLine(cols, color, width, alpha, limitX) {
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.lineJoin = "round";
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 10;
+    tracePath(cols, limitX);
     ctx.stroke();
+    ctx.shadowBlur = 0;
     ctx.globalAlpha = 1;
+  }
+
+  // The area under a good's line fades to nothing at the floor, like Prosperity's graph fill.
+  function drawArea(cols, rgb, alpha, limitX, floor) {
+    const shown = cols.filter((c) => c && c.x <= limitX);
+    if (shown.length < 2) return;
+    const top = Math.min(...shown.map((c) => c.mid));
+    const grad = ctx.createLinearGradient(0, top, 0, floor);
+    grad.addColorStop(0, `rgba(${rgb},0.2)`);
+    grad.addColorStop(0.55, `rgba(${rgb},0.06)`);
+    grad.addColorStop(1, `rgba(${rgb},0)`);
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.moveTo(shown[0].x, floor);
+    for (const c of shown) ctx.lineTo(c.x, c.mid);
+    ctx.lineTo(shown[shown.length - 1].x, floor);
+    ctx.closePath();
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  // A graph node: a soft halo, then a dot in a thin white ring.
+  function drawNode(x, y, fill, halo, r = 4.5) {
+    ctx.globalAlpha = 0.25;
+    ctx.fillStyle = halo;
+    ctx.beginPath(); ctx.arc(x, y, r * 2.2, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = fill;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+    ctx.lineWidth = 1.2; ctx.strokeStyle = "#fff"; ctx.stroke();
   }
 
   function draw() {
@@ -342,7 +384,7 @@ function createSection(component) {
     const ys = {};
 
     // Day boundaries: the joints of the section.
-    ctx.strokeStyle = "rgba(231,233,236,0.08)";
+    ctx.strokeStyle = "rgba(255,255,255,0.08)";
     ctx.lineWidth = 1;
     for (let d = 1; d < DAYS.length; d++) {
       const x = Math.round(xOf(d * TICKS)) + 0.5;
@@ -376,6 +418,8 @@ function createSection(component) {
       }
 
       const cols = columns(st.mids[g.key], y, g.key);
+      const area = (1 - st.split) * alpha;
+      if (area > 0.01) drawArea(cols, g.rgb, area, limit, B);
       ctx.fillStyle = g.color;
       ctx.globalAlpha = 0.35 * alpha;
       for (const c of cols) if (c && c.x <= limit) ctx.fillRect(c.x, c.hi, 1, Math.max(1, c.lo - c.hi));
@@ -408,7 +452,7 @@ function createSection(component) {
         const c = cols[i], p = cols[i - 1];
         if (!c || !p || c.x > head || c.x < head - 90) continue;
         ctx.globalAlpha = 0.9 * (1 - (head - c.x) / 90);
-        ctx.strokeStyle = "#ffb199";
+        ctx.strokeStyle = "#ffc29e";
         ctx.lineWidth = 3;
         ctx.beginPath(); ctx.moveTo(p.x, p.mid); ctx.lineTo(c.x, c.mid); ctx.stroke();
       }
@@ -437,7 +481,7 @@ function createSection(component) {
     const span = st.win.b - st.win.a;
     ctx.globalAlpha = st.tl;
     const zero = y(0);
-    ctx.strokeStyle = "rgba(231,233,236,0.18)";
+    ctx.strokeStyle = "rgba(255,255,255,0.18)";
     ctx.setLineDash([2, 4]);
     ctx.beginPath(); ctx.moveTo(L, zero); ctx.lineTo(R, zero); ctx.stroke();
     ctx.setLineDash([]);
@@ -450,12 +494,20 @@ function createSection(component) {
       if (first === null) { ctx.moveTo(x, yy); first = x; } else ctx.lineTo(x, yy);
       last = x;
     }
-    ctx.strokeStyle = COLORS.dust;
-    ctx.lineWidth = 1.5;
+    const stroke = ctx.createLinearGradient(L, 0, R, 0);
+    PROSPERITY.stroke.forEach((c, i) => stroke.addColorStop(i / 2, c));
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = 2;
+    ctx.lineJoin = "round";
+    ctx.shadowColor = PROSPERITY.glow;
+    ctx.shadowBlur = 13;
     ctx.stroke();
+    ctx.shadowBlur = 0;
     if (first !== null) {
       ctx.lineTo(last, zero); ctx.lineTo(first, zero); ctx.closePath();
-      ctx.fillStyle = "rgba(231,233,236,0.07)";
+      const fill = ctx.createLinearGradient(0, lt, 0, lb);
+      PROSPERITY.fill.forEach((c, i) => fill.addColorStop([0, 0.45, 1][i], c));
+      ctx.fillStyle = fill;
       ctx.fill();
     }
     // Fills: buys tick up from under the line, sells tick down from above it.
@@ -505,11 +557,7 @@ function createSection(component) {
         ctx.globalAlpha = 1;
       }
       const mid = s.mid[g % TICKS];
-      if (mid > 0) {
-        ctx.beginPath(); ctx.arc(x, y(mid), 5, 0, Math.PI * 2);
-        ctx.fillStyle = COLORS.shelf; ctx.fill();
-        ctx.lineWidth = 2.5; ctx.strokeStyle = good.color; ctx.stroke();
-      }
+      if (mid > 0) drawNode(x, y(mid), good.color, good.color);
     }
   }
 
@@ -637,15 +685,20 @@ function createSection(component) {
   // --- Header ----------------------------------------------------------------------------
   function headCopy() {
     const layer = st.layer;
-    if (layer === "notes") return ["Field notes", "Questions go to the Prosperity 4 wiki, the recorded market and the code examples. Every answer lists the passages it used."];
-    if (layer === "index") return ["Index", "Every recorded day and every layer of the section, as plain links."];
+    if (layer === "notes") return ["Field <em>notes</em>", "Questions go to the Prosperity 4 wiki, the recorded market and the code examples. Every answer lists the passages it used."];
+    if (layer === "index") return ["The <em>index</em>", "Every recorded day and every layer of the section, as plain links."];
     if (layer === "trader") {
       const s = st.settings;
-      if (!st.replay || st.busy) return [`Running the Round ${s.trader} Trader through ${dayName(s.day).toLowerCase()}.`, "Replaying every recorded tick of the day against the book and the public trades."];
+      if (!st.replay || st.busy) return [`Running the Round ${s.trader} Trader <em>through ${dayName(s.day).toLowerCase()}.</em>`, "Replaying every recorded tick of the day against the book and the public trades."];
       const r = st.replay;
       const verb = r.total_pnl >= 0 ? "made" : "lost";
-      return [`Round ${r.trader} Trader, ${dayName(r.day).toLowerCase()}: ${verb} <em>${fmt(Math.abs(r.total_pnl))}</em>.`, `Replayed against all ${nf.format(r.equitySeries.length)} ticks of the recorded day, in XIRECs. White marks on each good are its fills, and the white stratum is its P&amp;L, marked to the last mid price.`];
+      return [`Round ${r.trader} Trader, ${dayName(r.day).toLowerCase()}: <em>${verb} ${fmt(Math.abs(r.total_pnl))}.</em>`, `Replayed against all ${nf.format(r.equitySeries.length)} ticks of the recorded day, in XIRECs. White marks on each good are its fills, and the blue line under them is its P&amp;L, marked to the last mid price.`];
     }
+    // The ground's headline says what TradeTell is for; the market's own story is the chart card's title.
+    return ["Read the market. Replay a Trader. <em>Ask the wiki.</em>", "TradeTell helps you study IMC Prosperity 4, IMC's online algorithmic trading challenge. Open the recorded order book at any tick, run the built-in Round 1 and Round 2 Traders through four recorded days, and ask the competition wiki. Every answer lists the passages it used."];
+  }
+
+  function sectionCopy() {
     if (st.zoom !== null) {
       const d = DAYS[st.zoom];
       const loaded = st.days?.[st.zoom];
@@ -654,21 +707,26 @@ function createSection(component) {
       const o = loaded?.osmium || summary?.ASH_COATED_OSMIUM;
       if (p && o) {
         const low = o.lo ?? o.low, high = o.hi ?? o.high;
-        return [`${dayName(d)}: the <em>root</em> climbed ${fmt(p.close - p.open)}.`, `Intarian Pepper Root went from <strong>${fmt(p.open)}</strong> to <strong>${fmt(p.close)}</strong> XIRECs. Ash-Coated Osmium stayed between <strong>${fmt(low)}</strong> and <strong>${fmt(high)}</strong>. Move the probe to read the order book at any tick.`];
+        return [`${dayName(d)}: the root climbed ${fmt(p.close - p.open)}.`, `Intarian Pepper Root went from <strong>${fmt(p.open)}</strong> to <strong>${fmt(p.close)}</strong> XIRECs. Ash-Coated Osmium stayed between <strong>${fmt(low)}</strong> and <strong>${fmt(high)}</strong>. Drag the probe to read the order book at any tick.`];
       }
     }
-    return ["Both goods opened at 10,000. Only the <em>root</em> grew.", "Four recorded days on Intara, the Prosperity 4 trading planet. <strong>Ash-Coated Osmium</strong> held near 10,000 XIRECs every day. <strong>Intarian Pepper Root</strong> climbed about 1,000 a day. Move the probe to open the order book at any tick."];
+    return ["Both goods opened at 10,000. Only the root grew.", "Four recorded days on Intara. <strong>Ash-Coated Osmium</strong> held near 10,000 XIRECs every day. <strong>Intarian Pepper Root</strong> climbed about 1,000 a day. Drag the probe to open the order book at any tick."];
   }
 
   function renderHead(animate) {
     const [fact, lede] = headCopy();
-    const key = fact + lede;
+    const [title, note] = sectionCopy();
+    const key = fact + lede + title + note;
     if (key === st.headKey) return;
     st.headKey = key;
-    refs.fact.innerHTML = fact;
-    refs.lede.innerHTML = lede;
+    refs.sectionTitle.textContent = title;
+    refs.sectionNote.innerHTML = note;
     const zoomText = st.zoom === null ? "all four recorded days" : dayName(DAYS[st.zoom]);
     refs.caption.textContent = `Price section of ${zoomText}: Intarian Pepper Root and Ash-Coated Osmium mid prices with their order books${st.layer === "trader" ? ", plus the Trader's fills and P&L" : ""}.`;
+    // Zooming changes only the chart card, so the hero keeps still.
+    if (refs.fact.innerHTML === fact && refs.lede.innerHTML === lede) return;
+    refs.fact.innerHTML = fact;
+    refs.lede.innerHTML = lede;
     if (animate && !reduced()) {
       gsap.fromTo([refs.fact, refs.lede], { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out", stagger: 0.06, overwrite: true });
     }
@@ -747,6 +805,14 @@ function createSection(component) {
 
   // Layer links: real hrefs for new tabs, a trigger for in-place switches.
   function onNav(e) {
+    // "Open the order book" scrolls to the section and hands focus to the probe.
+    const jump = e.target.closest("[data-jump]");
+    if (jump) {
+      e.preventDefault();
+      refs.plot.closest(".tt-section").scrollIntoView({ behavior: reduced() ? "auto" : "smooth", block: "start" });
+      refs.probe.focus({ preventScroll: true });
+      return;
+    }
     const a = e.target.closest("[data-nav]");
     if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.button > 0) return;
     e.preventDefault();
@@ -765,7 +831,7 @@ function createSection(component) {
     for (const [name, items] of Object.entries(groups)) {
       const set = refs.trader.querySelector(`[data-choice="${name}"]`);
       const legend = set.querySelector("legend").outerHTML;
-      set.innerHTML = legend + items.map(([v, label]) => `<button type="button" data-value="${v}" aria-pressed="${String(s[name]) === String(v)}">${label}</button>`).join("");
+      set.innerHTML = legend + items.map(([v, label]) => `<button class="tt-glass" type="button" data-value="${v}" aria-pressed="${String(s[name]) === String(v)}">${label}</button>`).join("");
     }
   }
   function choose(name, value) {
