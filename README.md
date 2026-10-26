@@ -16,7 +16,7 @@
 
 ## What is TradeTell?
 
-TradeTell draws the recorded Prosperity 4 market on Intara as one section. Both goods opened at 10,000 XIRECs: Ash-Coated Osmium stayed there, and Intarian Pepper Root climbed about 1,000 a day to 14,000. Move the probe along the section to open the order book at any tick. Switch on the Trader layer to replay a built-in Round 1 or Round 2 Trader through a full day and see its fills and P&L on the same ticks. Open the field notes to ask the competition wiki, market data and code examples, with the passages behind each answer.
+TradeTell is a study tool for IMC Prosperity 4, IMC's online algorithmic trading challenge. It draws the recorded Prosperity 4 market on Intara as one section. Both goods opened at 10,000 XIRECs: Ash-Coated Osmium stayed there, and Intarian Pepper Root climbed about 1,000 a day to 14,000. Move the probe along the section to open the order book at any tick. Switch on the Trader layer to replay a built-in Round 1 or Round 2 Trader through a full day and see its fills and P&L on the same ticks. Open the field notes to ask the competition wiki, market data and code examples, with the passages behind each answer.
 
 The ground and Trader layers work without an API key. The assistant needs a Groq API key and builds its search index when you first ask a question.
 
