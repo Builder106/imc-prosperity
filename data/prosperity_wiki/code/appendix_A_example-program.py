@@ -12,7 +12,7 @@ class Trader:
         # Initialize the method output dict as an empty dict
         result = {}
 
-        # Iterate over all the keys (the available products) contained in the order dephts
+        # Iterate over all the keys (the available products) contained in the order depths
         for product in state.order_depths.keys():
 
                 # Retrieve the Order Depth containing all the market BUY and SELL orders
@@ -54,7 +54,7 @@ class Trader:
                         print("SELL", str(best_bid_volume) + "x", best_bid)
                         orders.append(Order(product, best_bid, -best_bid_volume))
 
-                # Add all the above the orders to the result dict
+                # Add all of the orders above to the result dict
                 result[product] = orders
                 
         traderData = "SAMPLE" # String value holding Trader state data required. It will be delivered as TradingState.traderData on next execution.
