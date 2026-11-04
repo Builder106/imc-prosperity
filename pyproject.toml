@@ -48,6 +48,7 @@ norecursedirs = ["tools", ".venv", "vectordb", "data", "backtests"]
 addopts = "--cov --cov-report=term-missing --cov-fail-under=100"
 filterwarnings = [
     "error",
+    "ignore:.*CallSpec2 has been renamed to CallSpec.*:pytest.PytestRemovedIn10Warning",
 ]
 
 [tool.coverage.run]
