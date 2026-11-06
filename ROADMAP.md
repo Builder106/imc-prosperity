@@ -6,7 +6,7 @@ retrieval quality and strategy outcomes.
 
 ## v1.1: Strategy evaluation loop
 
-- [ ] Replay the built-in Round 1 and Round 2 strategies against the bundled
+- [x] Replay the built-in Round 1 and Round 2 strategies against the bundled
   historical order books and public trades.
 - [ ] Report P&L, drawdown, fills, traded volume, and order-limit rejections for
   each day.
