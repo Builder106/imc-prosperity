@@ -8,7 +8,7 @@ retrieval quality and strategy outcomes.
 
 - [x] Replay the built-in Round 1 and Round 2 strategies against the bundled
   historical order books and public trades.
-- [ ] Report P&L, drawdown, fills, traded volume, and order-limit rejections for
+- [x] Report P&L, drawdown, fills, traded volume, and order-limit rejections for
   each day.
 - [ ] Measure source recall at k and mean reciprocal rank using the same local
   retriever and corpus as the app.
