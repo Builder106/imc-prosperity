@@ -14,6 +14,7 @@ from src.evaluation import (
     load_trader_factory,
     resolve_candidate,
 )
+from src.evaluation.strategy_replay import ROUND_DATA_DIRS
 
 
 class ScriptedTrader:
@@ -149,13 +150,15 @@ def test_compare_candidate_strategies_validation():
         compare_candidate_strategies(rounds=[5])
 
 
-def test_compare_candidate_strategies_live_round1():
+def test_compare_candidate_strategies_live_round1(mock_round_data: dict[int, Path]):
+    data_dirs = None if ROUND_DATA_DIRS[1].is_dir() else mock_round_data
     result = compare_candidate_strategies(
         candidates=["round_1", "round_2"],
         rounds=[1],
         held_out_rounds=[],
         held_out_days=[0],
         match_trades="worse",
+        data_dirs=data_dirs,
     )
 
     assert result["partitions"]["evaluated_rounds"] == [1]
@@ -177,7 +180,13 @@ def test_format_comparison_table_empty():
     assert format_comparison_table({}) == "No candidate strategies evaluated."
 
 
-def test_main_cli_table(capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch):
+def test_main_cli_table(
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+    mock_round_data: dict[int, Path],
+):
+    if not ROUND_DATA_DIRS[1].is_dir():
+        monkeypatch.setattr("src.evaluation.strategy_comparison.ROUND_DATA_DIRS", mock_round_data)
     monkeypatch.setattr(
         sys,
         "argv",
@@ -201,7 +210,13 @@ def test_main_cli_table(capsys: pytest.CaptureFixture[str], monkeypatch: pytest.
     assert "Held-Out P&L" in captured.out
 
 
-def test_main_cli_json(capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch):
+def test_main_cli_json(
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+    mock_round_data: dict[int, Path],
+):
+    if not ROUND_DATA_DIRS[1].is_dir():
+        monkeypatch.setattr("src.evaluation.strategy_comparison.ROUND_DATA_DIRS", mock_round_data)
     monkeypatch.setattr(
         sys,
         "argv",
