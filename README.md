@@ -141,6 +141,19 @@ Rows with no quotes carry forward the last valid mid price for inventory
 valuation. The Streamlit app replays the full days in `static/intara/`; the CLI
 reads the local competition archive when it is available.
 
+Compare candidate strategies on held-out days and rounds:
+
+```bash
+uv run python -m src.evaluation.strategy_comparison --format table
+```
+
+By default, this compares the built-in Round 1 and Round 2 traders across
+rounds 1 and 2, evaluating performance on training vs. held-out days (days 0
+and 1) and held-out rounds (round 2). You can specify custom candidate files
+with `--strategies round_1 path/to/trader.py`, set custom `--rounds 1 2`,
+or configure `--held-out-days` and `--held-out-rounds`. Use `--format json`
+for programmatic analysis.
+
 Measure retrieval against the app's local corpus and embedding model:
 
 ```bash

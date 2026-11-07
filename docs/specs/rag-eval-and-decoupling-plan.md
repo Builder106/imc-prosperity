@@ -45,10 +45,23 @@ embedding model and builds the index in memory, so the first run may need to
 download the model. The benchmark stays outside CI because it requires the
 embedding model and builds the full corpus at startup.
 
+## Strategy comparison
+
+Compare candidate strategies on held-out days and rounds:
+
+```bash
+uv run python -m src.evaluation.strategy_comparison --format table
+```
+
+The tool partitions historical data into in-sample and held-out segments across
+rounds and days, evaluating each candidate trader with clean daily state. It
+reports total P&L, maximum drawdown, return-to-drawdown ratios, fills, volume,
+rejections, and an overfit gap metric comparing in-sample vs out-of-sample daily
+returns. Candidate strategies can be referenced by name (`round_1`, `round_2`)
+or loaded from external Python file paths.
+
 ## Follow-up work
 
-Before adding a Streamlit comparison view, use the replay to compare strategies
-on held-out days and rounds. Add tests for the replay's CSV parsing, fill rules,
-and position-limit checks before making its results a CI gate. Consider
-persistent indexing or a separate API only if measured startup or deployment
-needs justify the added machinery.
+Before adding a Streamlit comparison view, show the retrieved sources and replay
+results beside each strategy answer. Consider persistent indexing or a separate
+API only if measured startup or deployment needs justify the added machinery.

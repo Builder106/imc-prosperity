@@ -4,6 +4,10 @@
 > happen — retrospectives need this raw material to land. Reverse-chronological;
 > one paragraph max per entry.
 
+## 2026-11-07: Compare candidate strategies on held-out days and rounds #decision
+
+Added a deterministic strategy comparison module (`src.evaluation.strategy_comparison`) that evaluates multiple candidate strategies across bundled historical rounds and partitions market data into in-sample and out-of-sample (held-out) days and rounds. Candidates can be built-in round strategies or external strategy scripts. The evaluation reports aggregate P&L, maximum drawdown, return-to-drawdown ratios, fills, volume, order-limit rejections, and an overfit gap metric comparing mean daily P&L between in-sample and held-out segments to identify generalization failures before deployment. Both JSON and ASCII table outputs are supported from the command line, with seamless delegation via `--compare` on `src.evaluation.strategy_replay`.
+
 ## 2026-10-25: Lead the hero with what TradeTell is for #decision
 
 The hero opened on the market's shape and only a small "market workbench" label hinted at the purpose, so first-time visitors could not tell what the page was for. The ground headline now names the three tools ("Read the market. Replay a Trader. Ask the wiki."). A lede says TradeTell is a study tool for IMC Prosperity 4 and what each tool does, and three Prosperity-style action pills lead to them. The market fact became the chart card's title, so the data still explains itself where you look at it. Zooming into a day updates that card and leaves the hero alone. The ground page title changed to "TradeTell | Study IMC Prosperity 4", and the README's "What is TradeTell?" section now opens with the same sentence.

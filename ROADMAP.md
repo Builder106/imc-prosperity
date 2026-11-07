@@ -18,7 +18,7 @@ retrieval quality and strategy outcomes.
 
 ## v1.2: Strategy comparison
 
-- [ ] Compare candidate strategies on held-out days and rounds.
+- [x] Compare candidate strategies on held-out days and rounds.
 - [ ] Show the retrieved sources and replay results beside each strategy answer.
 - [ ] Add a Streamlit comparison view if the command-line results prove useful.
 
