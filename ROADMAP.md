@@ -12,7 +12,7 @@ retrieval quality and strategy outcomes.
   each day.
 - [x] Measure source recall at k and mean reciprocal rank using the same local
   retriever and corpus as the app.
-- [ ] Keep the replay assumptions visible. The historical data does not include
+- [x] Keep the replay assumptions visible. The historical data does not include
   queue priority, conversions, or Round 2 market-access bidding. The retrieval
   benchmark does not call the LLM.
 
