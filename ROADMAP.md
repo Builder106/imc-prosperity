@@ -10,7 +10,7 @@ retrieval quality and strategy outcomes.
   historical order books and public trades.
 - [x] Report P&L, drawdown, fills, traded volume, and order-limit rejections for
   each day.
-- [ ] Measure source recall at k and mean reciprocal rank using the same local
+- [x] Measure source recall at k and mean reciprocal rank using the same local
   retriever and corpus as the app.
 - [ ] Keep the replay assumptions visible. The historical data does not include
   queue priority, conversions, or Round 2 market-access bidding. The retrieval
