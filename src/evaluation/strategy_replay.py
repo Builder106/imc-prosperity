@@ -10,6 +10,7 @@ import json
 import re
 import sys
 from collections import defaultdict
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Protocol, cast
@@ -138,19 +139,35 @@ def read_day(prices_path: Path, trades_path: Path) -> dict[int, Tick]:
     return dict(sorted(ticks.items()))
 
 
-def load_trader(round_num: int) -> tuple[TraderProtocol, dict[str, int]]:
-    strategy_dir = PROJECT_ROOT / "src" / "algorithms" / f"round_{round_num}"
-    module_path = strategy_dir / "trader.py"
-    if not module_path.is_file():
-        raise ValueError(f"No built-in strategy for round {round_num}")
+def load_trader_factory(
+    target: int | str | Path,
+) -> tuple[Callable[[], TraderProtocol], dict[str, int]]:
+    if isinstance(target, int) or (isinstance(target, str) and target.isdigit()):
+        round_num = int(target)
+        strategy_dir = PROJECT_ROOT / "src" / "algorithms" / f"round_{round_num}"
+        module_path = strategy_dir / "trader.py"
+        if not module_path.is_file():
+            raise ValueError(f"No built-in strategy for round {round_num}")
+        module_name = f"tradetell_round_{round_num}_trader"
+    elif isinstance(target, str) and target.startswith("round_") and target[6:].isdigit():
+        round_num = int(target[6:])
+        strategy_dir = PROJECT_ROOT / "src" / "algorithms" / f"round_{round_num}"
+        module_path = strategy_dir / "trader.py"
+        if not module_path.is_file():
+            raise ValueError(f"No built-in strategy for round {round_num}")
+        module_name = f"tradetell_round_{round_num}_trader"
+    else:
+        module_path = Path(target).resolve()
+        if not module_path.is_file():
+            raise FileNotFoundError(f"Strategy file not found: {module_path}")
+        safe_suffix = re.sub(r"[^a-zA-Z0-9_]", "_", module_path.stem)
+        module_name = f"tradetell_custom_{safe_suffix}_{abs(hash(str(module_path)))}"
 
     datamodel_dir = PROJECT_ROOT / "src" / "algorithms" / "round_1"
     datamodel_path = str(datamodel_dir)
     if datamodel_path not in sys.path:
         sys.path.insert(0, datamodel_path)
-    module_spec = importlib.util.spec_from_file_location(
-        f"tradetell_round_{round_num}_trader", module_path
-    )
+    module_spec = importlib.util.spec_from_file_location(module_name, module_path)
     if module_spec is None or module_spec.loader is None:
         raise ImportError(f"Could not load strategy from {module_path}")
     module = importlib.util.module_from_spec(module_spec)
@@ -159,10 +176,15 @@ def load_trader(round_num: int) -> tuple[TraderProtocol, dict[str, int]]:
     trader_type = getattr(module, "Trader", None)
     if not isinstance(trader_type, type):
         raise ValueError(f"{module_path} must define a Trader class")
-    trader = cast(TraderProtocol, trader_type())
     raw_limits = getattr(module, "POSITION_LIMIT", {})
     limits = {str(product): int(limit) for product, limit in raw_limits.items()}
-    return trader, limits
+    factory = cast(Callable[[], TraderProtocol], trader_type)
+    return factory, limits
+
+
+def load_trader(target: int | str | Path) -> tuple[TraderProtocol, dict[str, int]]:
+    factory, limits = load_trader_factory(target)
+    return factory(), limits
 
 
 def _fill_order(
@@ -441,7 +463,23 @@ def main() -> None:
         "--day", type=int, help="Replay one day. By default, replay every available day."
     )
     parser.add_argument("--match-trades", choices=("all", "worse", "none"), default="worse")
+    parser.add_argument(
+        "--compare",
+        action="store_true",
+        help="Compare candidate strategies on held-out days and rounds.",
+    )
     args = parser.parse_args()
+    if args.compare:
+        from .strategy_comparison import compare_candidate_strategies
+
+        print(
+            json.dumps(
+                compare_candidate_strategies(match_trades=args.match_trades),
+                indent=2,
+                sort_keys=True,
+            )
+        )
+        return
     print(json.dumps(run_round(args.round, args.day, args.match_trades), indent=2, sort_keys=True))
 
 
