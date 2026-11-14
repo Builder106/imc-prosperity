@@ -9,7 +9,7 @@ gzipped with `gzip -9 -n` from the competition data capsules:
 | 1 | Round 2 capsule, `prices_round_2_day_1.csv` and `trades_round_2_day_1.csv` |
 
 The Round 2 capsule also has days −1 and 0. They cover the same stretch of the pepper root's
-climb as Round 1 days −1 and 0 (about 11,000 to 13,000) with their own quotes, so they are left
+climb as Round 1 days −1 and 0 (about 11,000 to 13,000), with their own quotes. They are left
 out to keep one continuous record.
 
 Streamlit serves this folder at `app/static/intara/`. The section in the browser fetches the files

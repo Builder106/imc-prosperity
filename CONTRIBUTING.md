@@ -30,7 +30,7 @@ streamlit run app.py
 pytest
 ```
 
-`pytest.ini`scopes collection to`tests/`, so the vendored `tools/` tree is
+`pytest.ini` scopes collection to `tests/`, so the vendored `tools/` tree is
 ignored. Add tests under `tests/` mirroring the module under test
 (e.g. `tests/test_groq_llm.py`). Network calls — Groq and the embedding model —
 must be mocked; the suite runs offline.
@@ -51,7 +51,7 @@ must be mocked; the suite runs offline.
   contract `invoke({"query": ...}) -> {"result", "source_documents"}`. Keep that
   contract so the backend stays swappable.
 
-- **Secrets are never committed.** `GROQ_API_KEY`lives in`.env` locally or in
+- **Secrets are never committed.** `GROQ_API_KEY` lives in `.env` locally or in
 
   Streamlit secrets on Cloud. The repo is public.
 
